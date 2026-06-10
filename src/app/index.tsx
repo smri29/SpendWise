@@ -1,26 +1,25 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Link } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.appName}>SpendWise</Text>
 
-      <Text style={styles.subtitle}>
-        Track your daily expenses easily
-      </Text>
+      <Text style={styles.subtitle}>Track your daily expenses easily</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Today&apos;s Expense</Text>
         <Text style={styles.amount}>৳ 0</Text>
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <Link href="/add-expense" style={styles.button}>
         <Text style={styles.buttonText}>Add Expense</Text>
-      </TouchableOpacity>
+      </Link>
 
-      <TouchableOpacity style={styles.secondaryButton}>
+      <Link href="/expenses" style={styles.secondaryButton}>
         <Text style={styles.secondaryButtonText}>View Expenses</Text>
-      </TouchableOpacity>
+      </Link>
     </View>
   );
 }
@@ -65,23 +64,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563EB",
     padding: 16,
     borderRadius: 14,
-    alignItems: "center",
+    textAlign: "center",
     marginBottom: 12,
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+    textAlign: "center",
   },
   secondaryButton: {
     backgroundColor: "#E5E7EB",
     padding: 16,
     borderRadius: 14,
-    alignItems: "center",
+    textAlign: "center",
   },
   secondaryButtonText: {
     color: "#111827",
     fontSize: 16,
     fontWeight: "bold",
+    textAlign: "center",
   },
 });
