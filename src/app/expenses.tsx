@@ -1,86 +1,324 @@
-import { Expense, getAllExpenses } from "@/database/expenseDatabase";
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+
+import { HistoryFilters, SpendWiseColors } from "@/constants/spendwise";
+import {
+  filterExpensesByPeriod,
+  searchExpenses,
+} from "@/database/expenseAnalytics";
+import { deleteExpense, getAllExpenses } from "@/database/expenseDatabase";
+import { Expense, HistoryFilter } from "@/database/expenseDatabase.types";
+import {
+  formatCurrency,
+  formatDateTime,
+  formatRelativeWindow,
+} from "@/utils/formatters";
 
 export default function ExpensesScreen() {
+  const router = useRouter();
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<HistoryFilter>("all");
 
-  useEffect(() => {
-    async function loadExpenses() {
-      try {
-        const savedExpenses = await getAllExpenses();
-        setExpenses(savedExpenses);
-        console.log("Loaded expenses:", savedExpenses);
-      } catch (error) {
-        console.log("Load expenses error:", error);
+  const filteredExpenses = useMemo(() => {
+    return filterExpensesByPeriod(searchExpenses(expenses, query), filter);
+  }, [expenses, filter, query]);
+
+  const filteredTotal = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function loadExpenses() {
+        try {
+          const savedExpenses = await getAllExpenses();
+          if (isActive) {
+            setExpenses(savedExpenses);
+          }
+        } catch (error) {
+          console.log("Load expenses error:", error);
+        }
       }
-    }
 
-    loadExpenses();
-  }, []);
+      loadExpenses();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
+  function confirmDelete(expense: Expense) {
+    Alert.alert(
+      "Delete expense?",
+      `${expense.category} - ${formatCurrency(expense.amount)}`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteExpense(expense.id);
+              setExpenses((current) =>
+                current.filter((currentExpense) => currentExpense.id !== expense.id),
+              );
+            } catch (error) {
+              console.log("Delete expense error:", error);
+              Alert.alert("Error", "Expense could not be deleted.");
+            }
+          },
+        },
+      ],
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Expenses</Text>
-
-      {expenses.length === 0 ? (
-        <Text style={styles.emptyText}>No expenses found.</Text>
-      ) : (
-        expenses.map((expense) => (
-          <View key={expense.id} style={styles.expenseItem}>
-            <Text style={styles.expenseAmount}>৳ {expense.amount}</Text>
-            <Text style={styles.expenseCategory}>{expense.category}</Text>
-            <Text style={styles.expenseNote}>{expense.note}</Text>
-            <Text style={styles.expenseDate}>{expense.created_at}</Text>
+    <FlatList
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      data={filteredExpenses}
+      keyExtractor={(item) => String(item.id)}
+      ListHeaderComponent={
+        <View style={styles.header}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Expense History</Text>
+            <Text style={styles.summaryAmount}>{formatCurrency(filteredTotal)}</Text>
+            <Text style={styles.summaryMeta}>
+              {formatRelativeWindow(filteredTotal, filteredExpenses.length)}
+            </Text>
           </View>
-        ))
+
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by category or note"
+            value={query}
+            onChangeText={setQuery}
+          />
+
+          <View style={styles.filterRow}>
+            {HistoryFilters.map((item) => {
+              const active = item.key === filter;
+              return (
+                <Pressable
+                  key={item.key}
+                  style={[styles.filterChip, active && styles.filterChipActive]}
+                  onPress={() => setFilter(item.key)}
+                >
+                  <Text
+                    style={[styles.filterChipText, active && styles.filterChipTextActive]}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      }
+      ListEmptyComponent={
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyTitle}>No matching expenses</Text>
+          <Text style={styles.emptyText}>
+            Try another filter or add a new expense to build your history.
+          </Text>
+        </View>
+      }
+      renderItem={({ item }) => (
+        <View style={styles.expenseItem}>
+          <Pressable
+            style={styles.expenseMain}
+            onPress={() =>
+              router.push({
+                pathname: "/add-expense",
+                params: { expenseId: String(item.id) },
+              })
+            }
+          >
+            <View style={styles.expenseHeader}>
+              <Text style={styles.expenseCategory}>{item.category}</Text>
+              <Text style={styles.expenseAmount}>{formatCurrency(item.amount)}</Text>
+            </View>
+            <Text style={styles.expenseNote}>{item.note?.trim() ? item.note : "No note"}</Text>
+            <Text style={styles.expenseDate}>{formatDateTime(item.created_at)}</Text>
+          </Pressable>
+          <View style={styles.actionButtons}>
+            <Pressable
+              style={styles.editButton}
+              onPress={() =>
+                router.push({
+                  pathname: "/add-expense",
+                  params: { expenseId: String(item.id) },
+                })
+              }
+            >
+              <Text style={styles.editButtonText}>Edit</Text>
+            </Pressable>
+            <Pressable
+              style={styles.deleteButton}
+              onPress={() => confirmDelete(item)}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </Pressable>
+          </View>
+        </View>
       )}
-    </View>
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    padding: 24,
-    backgroundColor: "#F5F7FA",
+    backgroundColor: SpendWiseColors.background,
   },
-  title: {
-    fontSize: 30,
+  content: {
+    padding: 20,
+    paddingBottom: 32,
+    gap: 14,
+  },
+  header: {
+    gap: 14,
+    marginBottom: 14,
+  },
+  summaryCard: {
+    backgroundColor: SpendWiseColors.surface,
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: SpendWiseColors.border,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: SpendWiseColors.text,
+    marginBottom: 8,
+  },
+  summaryAmount: {
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 20,
+    color: SpendWiseColors.text,
+  },
+  summaryMeta: {
+    fontSize: 14,
+    color: SpendWiseColors.textMuted,
+    marginTop: 6,
+  },
+  searchInput: {
+    backgroundColor: SpendWiseColors.surface,
+    borderRadius: 16,
+    padding: 14,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: SpendWiseColors.border,
+  },
+  filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: SpendWiseColors.surfaceMuted,
+  },
+  filterChipActive: {
+    backgroundColor: SpendWiseColors.primary,
+  },
+  filterChipText: {
+    color: SpendWiseColors.primary,
+    fontWeight: "700",
+  },
+  filterChipTextActive: {
+    color: "#FFFFFF",
+  },
+  emptyCard: {
+    backgroundColor: SpendWiseColors.surface,
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: SpendWiseColors.border,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: SpendWiseColors.text,
+    marginBottom: 6,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#6B7280",
+    fontSize: 14,
+    color: SpendWiseColors.textMuted,
+    lineHeight: 21,
   },
   expenseItem: {
-    backgroundColor: "#FFFFFF",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 10,
+    backgroundColor: SpendWiseColors.surface,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: SpendWiseColors.border,
+    gap: 14,
+  },
+  expenseMain: {
+    gap: 6,
+  },
+  expenseHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
   },
   expenseAmount: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#111827",
+    fontWeight: "700",
+    color: SpendWiseColors.success,
   },
   expenseCategory: {
-    fontSize: 15,
-    color: "#374151",
-    marginTop: 4,
+    fontSize: 17,
+    fontWeight: "700",
+    color: SpendWiseColors.text,
   },
   expenseNote: {
     fontSize: 14,
-    color: "#6B7280",
-    marginTop: 4,
+    color: SpendWiseColors.textMuted,
   },
   expenseDate: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    marginTop: 6,
+    fontSize: 13,
+    color: SpendWiseColors.textMuted,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  editButton: {
+    flex: 1,
+    backgroundColor: SpendWiseColors.surfaceMuted,
+    padding: 12,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  editButtonText: {
+    color: SpendWiseColors.text,
+    fontWeight: "700",
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: SpendWiseColors.dangerSoft,
+    padding: 12,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: SpendWiseColors.danger,
+    fontWeight: "700",
   },
 });

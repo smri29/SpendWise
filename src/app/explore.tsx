@@ -1,180 +1,218 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { SpendWiseColors } from "@/constants/spendwise";
+import { buildSmartTips, createEmptySummary } from "@/database/expenseAnalytics";
+import {
+  getBudgetProgress,
+  getCategoryBreakdown,
+  getExpenseSummary,
+} from "@/database/expenseDatabase";
+import {
+  BudgetProgress,
+  CategoryBreakdown,
+  ExpenseSummary,
+} from "@/database/expenseDatabase.types";
+import { formatCurrency, formatPercentage } from "@/utils/formatters";
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
+export default function InsightsScreen() {
+  const [summary, setSummary] = useState<ExpenseSummary>(createEmptySummary());
+  const [breakdown, setBreakdown] = useState<CategoryBreakdown[]>([]);
+  const [budgets, setBudgets] = useState<BudgetProgress[]>([]);
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function loadInsights() {
+        try {
+          const [nextSummary, nextBreakdown, nextBudgets] = await Promise.all([
+            getExpenseSummary(),
+            getCategoryBreakdown(),
+            getBudgetProgress(),
+          ]);
+
+          if (!isActive) {
+            return;
+          }
+
+          setSummary(nextSummary);
+          setBreakdown(nextBreakdown);
+          setBudgets(nextBudgets);
+        } catch (error) {
+          console.log("Insights load error:", error);
+        }
+      }
+
+      loadInsights();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
+  const tips = useMemo(
+    () => buildSmartTips(summary, breakdown, budgets),
+    [summary, breakdown, budgets],
+  );
+
+  const strongestBudget = budgets[0];
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <View style={styles.heroCard}>
+        <Text style={styles.title}>Spending Insights</Text>
+        <Text style={styles.subtitle}>
+          SpendWise turns your expense log into a practical coaching layer for the month ahead.
+        </Text>
+      </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
+      <View style={styles.metricsGrid}>
+        <View style={styles.metricCard}>
+          <Text style={styles.metricLabel}>Average Expense</Text>
+          <Text style={styles.metricValue}>{formatCurrency(summary.averageTransaction)}</Text>
+        </View>
+        <View style={styles.metricCard}>
+          <Text style={styles.metricLabel}>Transactions</Text>
+          <Text style={styles.metricValue}>{summary.transactionCount}</Text>
+        </View>
+      </View>
+
+      <View style={styles.metricsGrid}>
+        <View style={styles.metricCard}>
+          <Text style={styles.metricLabel}>Top Category</Text>
+          <Text style={styles.metricValueText}>{summary.topCategory ?? "None yet"}</Text>
+        </View>
+        <View style={styles.metricCard}>
+          <Text style={styles.metricLabel}>Month Total</Text>
+          <Text style={styles.metricValue}>{formatCurrency(summary.monthTotal)}</Text>
+        </View>
+      </View>
+
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Budget Pressure</Text>
+        {strongestBudget ? (
+          <>
+            <Text style={styles.focusText}>
+              {strongestBudget.category} is currently the most pressured budget.
+            </Text>
+            <Text style={styles.focusValue}>{formatPercentage(strongestBudget.usageRatio)}</Text>
+            <Text style={styles.focusMeta}>
+              {formatCurrency(strongestBudget.spent)} spent from {formatCurrency(strongestBudget.monthly_limit)}
+            </Text>
+          </>
+        ) : (
+          <Text style={styles.emptyText}>
+            Create budgets to unlock budget pressure analysis and warnings.
+          </Text>
+        )}
+      </View>
+
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Category Breakdown</Text>
+        {breakdown.length === 0 ? (
+          <Text style={styles.emptyText}>
+            Add a few expenses and SpendWise will show your category distribution here.
+          </Text>
+        ) : (
+          breakdown.map((item, index) => (
+            <View key={item.category} style={styles.breakdownItem}>
+              <View style={styles.breakdownHeader}>
+                <Text style={styles.breakdownCategory}>{item.category}</Text>
+                <Text style={styles.breakdownAmount}>{formatCurrency(item.total)}</Text>
+              </View>
+              <View style={styles.barTrack}>
+                <View
+                  style={[
+                    styles.barFill,
+                    {
+                      width: `${Math.max(item.share * 100, 6)}%`,
+                      backgroundColor:
+                        SpendWiseColors.chart[index % SpendWiseColors.chart.length],
+                    },
+                  ]}
                 />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+              </View>
+              <Text style={styles.breakdownMeta}>
+                {item.count} transaction{item.count === 1 ? "" : "s"} •{" "}
+                {(item.share * 100).toFixed(0)}% of total
+              </Text>
+            </View>
+          ))
+        )}
+      </View>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Smart Tips</Text>
+        <View style={styles.tipsList}>
+          {tips.map((tip) => (
+            <View key={tip} style={styles.tipCard}>
+              <Text style={styles.tipText}>{tip}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  screen: { flex: 1, backgroundColor: SpendWiseColors.background },
+  content: { padding: 20, paddingBottom: 32, gap: 16 },
+  heroCard: {
+    backgroundColor: SpendWiseColors.surface,
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: SpendWiseColors.border,
+    gap: 8,
+  },
+  title: { fontSize: 30, fontWeight: "bold", color: SpendWiseColors.text },
+  subtitle: { fontSize: 15, lineHeight: 22, color: SpendWiseColors.textMuted },
+  metricsGrid: { flexDirection: "row", gap: 12 },
+  metricCard: {
     flex: 1,
+    backgroundColor: SpendWiseColors.surface,
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: SpendWiseColors.border,
   },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  metricLabel: { fontSize: 13, color: SpendWiseColors.textMuted, marginBottom: 8 },
+  metricValue: { fontSize: 20, fontWeight: "700", color: SpendWiseColors.text },
+  metricValueText: { fontSize: 18, fontWeight: "700", color: SpendWiseColors.text },
+  sectionCard: {
+    backgroundColor: SpendWiseColors.surface,
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: SpendWiseColors.border,
+    gap: 14,
   },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
+  sectionTitle: { fontSize: 20, fontWeight: "700", color: SpendWiseColors.text },
+  emptyText: { fontSize: 14, lineHeight: 21, color: SpendWiseColors.textMuted },
+  focusText: { fontSize: 14, color: SpendWiseColors.textMuted },
+  focusValue: { fontSize: 34, fontWeight: "bold", color: SpendWiseColors.warning },
+  focusMeta: { fontSize: 14, color: SpendWiseColors.textMuted },
+  breakdownItem: { gap: 8 },
+  breakdownHeader: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
+  breakdownCategory: { fontSize: 16, fontWeight: "700", color: SpendWiseColors.text },
+  breakdownAmount: { fontSize: 15, fontWeight: "700", color: SpendWiseColors.text },
+  barTrack: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: SpendWiseColors.surfaceMuted,
+    overflow: "hidden",
   },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+  barFill: { height: "100%", borderRadius: 999 },
+  breakdownMeta: { fontSize: 13, color: SpendWiseColors.textMuted },
+  tipsList: { gap: 10 },
+  tipCard: {
+    backgroundColor: SpendWiseColors.surfaceMuted,
+    borderRadius: 16,
+    padding: 14,
   },
-  centerText: {
-    textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: 'center',
-  },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
-  },
+  tipText: { fontSize: 14, lineHeight: 21, color: SpendWiseColors.text },
 });

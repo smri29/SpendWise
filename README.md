@@ -1,56 +1,69 @@
-# Welcome to your Expo app 👋
+# SpendWise
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+SpendWise is an Android-first expense tracker built with Expo SDK 56 and React Native.
 
-## Get started
+## What the app includes
 
-1. Install dependencies
+- Dashboard with today, week, month, and lifetime totals
+- Add, edit, and delete expense entries
+- Searchable and filterable expense history
+- Monthly budgets with progress and over-limit warnings
+- Recurring reminder scheduling through local Android notifications
+- Insights screen with category breakdowns and smart tips
+- Local backup export and restore
+- Privacy-first local storage with no account requirement
 
-   ```bash
-   npm install
-   ```
+## Android focus
 
-2. Start the app
+This project is configured for Android release work:
 
-   ```bash
-   npx expo start
-   ```
+- `platforms` is set to Android in [app.json](/e:/myWebsites/SpendWise/app.json:1)
+- Local notifications are configured with `expo-notifications`
+- Sharing and backup export are configured with `expo-sharing` and `expo-file-system`
 
-In the output, you'll find options to open the app in a
+## Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Expo `~56.0.11`
+- Expo Router `~56.2.10`
+- Expo SQLite `~56.0.5`
+- Expo Notifications `~56.0.17`
+- React Native `0.85.3`
+- TypeScript `~6.0.3`
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Development
 
-## Get a fresh project
-
-When you're ready, run:
+Install dependencies:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Run Android:
 
-### Other setup steps
+```bash
+npm run android
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Useful checks:
 
-## Learn more
+```bash
+npm run lint
+npm run typecheck
+npm run doctor
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project layout
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- [src/app](/e:/myWebsites/SpendWise/src/app:1): screens and router layout
+- [src/database](/e:/myWebsites/SpendWise/src/database:1): persistence and analytics
+- [src/services](/e:/myWebsites/SpendWise/src/services:1): notifications and backup handling
+- [src/constants](/e:/myWebsites/SpendWise/src/constants:1): categories, colors, and labels
+- [src/utils](/e:/myWebsites/SpendWise/src/utils:1): formatting helpers
 
-## Join the community
+## Validation
 
-Join our community of developers creating universal apps.
+The current app passes:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `npm run lint`
+- `npm run typecheck`
+- `npx expo-doctor`
