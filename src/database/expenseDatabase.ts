@@ -15,6 +15,7 @@ import {
   buildExpenseSummary,
   getRecentCategories as deriveRecentCategories,
 } from "@/database/expenseAnalytics";
+import { normalizeCategory } from "@/utils/formatters";
 
 const STORAGE_KEY = "spendwise.backup";
 
@@ -92,7 +93,7 @@ export async function insertExpense(
   const expense: Expense = {
     id: nextId(store.expenses),
     amount,
-    category,
+    category: normalizeCategory(category),
     note: note || null,
     created_at: new Date().toISOString(),
   };
@@ -115,7 +116,12 @@ export async function updateExpense(
     ...store,
     expenses: store.expenses.map((expense) =>
       expense.id === id
-        ? { ...expense, amount, category, note: note || null }
+        ? {
+            ...expense,
+            amount,
+            category: normalizeCategory(category),
+            note: note || null,
+          }
         : expense,
     ),
   });
@@ -151,13 +157,16 @@ export async function getRecentCategories(limit = 6): Promise<string[]> {
 
 export async function upsertBudget(category: string, monthlyLimit: number) {
   const store = readStore();
-  const existing = store.budgets.find((budget) => budget.category === category);
+  const normalizedCategory = normalizeCategory(category);
+  const existing = store.budgets.find(
+    (budget) => budget.category === normalizedCategory,
+  );
 
   if (existing) {
     writeStore({
       ...store,
       budgets: store.budgets.map((budget) =>
-        budget.category === category
+        budget.category === normalizedCategory
           ? { ...budget, monthly_limit: monthlyLimit }
           : budget,
       ),
@@ -167,7 +176,7 @@ export async function upsertBudget(category: string, monthlyLimit: number) {
 
   const budget: Budget = {
     id: nextId(store.budgets),
-    category,
+    category: normalizedCategory,
     monthly_limit: monthlyLimit,
     created_at: new Date().toISOString(),
   };
@@ -191,8 +200,12 @@ export async function getAllBudgets(): Promise<Budget[]> {
 }
 
 export async function getBudgetProgress(): Promise<BudgetProgress[]> {
-  const [budgets, expenses] = await Promise.all([getAllBudgets(), getAllExpenses()]);
-  return buildBudgetProgress(budgets, expenses);
+  const [budgets, expenses, settings] = await Promise.all([
+    getAllBudgets(),
+    getAllExpenses(),
+    getSettings(),
+  ]);
+  return buildBudgetProgress(budgets, expenses, settings.monthly_budget_start_day);
 }
 
 export async function insertReminder(reminder: ReminderDraft) {
@@ -200,7 +213,7 @@ export async function insertReminder(reminder: ReminderDraft) {
   const nextReminder: Reminder = {
     id: nextId(store.reminders),
     title: reminder.title,
-    category: reminder.category || null,
+    category: reminder.category ? normalizeCategory(reminder.category) : null,
     note: reminder.note || null,
     amount_hint: reminder.amount_hint,
     frequency: reminder.frequency,
@@ -230,7 +243,7 @@ export async function updateReminder(id: number, reminder: ReminderDraft) {
         ? {
             ...item,
             title: reminder.title,
-            category: reminder.category || null,
+            category: reminder.category ? normalizeCategory(reminder.category) : null,
             note: reminder.note || null,
             amount_hint: reminder.amount_hint,
             frequency: reminder.frequency,

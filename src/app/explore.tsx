@@ -8,18 +8,25 @@ import {
   getBudgetProgress,
   getCategoryBreakdown,
   getExpenseSummary,
+  getSettings,
 } from "@/database/expenseDatabase";
 import {
+  AppSettings,
   BudgetProgress,
   CategoryBreakdown,
   ExpenseSummary,
 } from "@/database/expenseDatabase.types";
-import { formatCurrency, formatPercentage } from "@/utils/formatters";
+import { formatCurrencyWithCode, formatPercentage } from "@/utils/formatters";
 
 export default function InsightsScreen() {
   const [summary, setSummary] = useState<ExpenseSummary>(createEmptySummary());
   const [breakdown, setBreakdown] = useState<CategoryBreakdown[]>([]);
   const [budgets, setBudgets] = useState<BudgetProgress[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({
+    currency: "BDT",
+    notifications_enabled: 1,
+    monthly_budget_start_day: 1,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -27,11 +34,13 @@ export default function InsightsScreen() {
 
       async function loadInsights() {
         try {
-          const [nextSummary, nextBreakdown, nextBudgets] = await Promise.all([
-            getExpenseSummary(),
-            getCategoryBreakdown(),
-            getBudgetProgress(),
-          ]);
+          const [nextSummary, nextBreakdown, nextBudgets, nextSettings] =
+            await Promise.all([
+              getExpenseSummary(),
+              getCategoryBreakdown(),
+              getBudgetProgress(),
+              getSettings(),
+            ]);
 
           if (!isActive) {
             return;
@@ -40,6 +49,7 @@ export default function InsightsScreen() {
           setSummary(nextSummary);
           setBreakdown(nextBreakdown);
           setBudgets(nextBudgets);
+          setSettings(nextSettings);
         } catch (error) {
           console.log("Insights load error:", error);
         }
@@ -72,7 +82,9 @@ export default function InsightsScreen() {
       <View style={styles.metricsGrid}>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>Average Expense</Text>
-          <Text style={styles.metricValue}>{formatCurrency(summary.averageTransaction)}</Text>
+          <Text style={styles.metricValue}>
+            {formatCurrencyWithCode(summary.averageTransaction, settings.currency)}
+          </Text>
         </View>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>Transactions</Text>
@@ -87,7 +99,9 @@ export default function InsightsScreen() {
         </View>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>Month Total</Text>
-          <Text style={styles.metricValue}>{formatCurrency(summary.monthTotal)}</Text>
+          <Text style={styles.metricValue}>
+            {formatCurrencyWithCode(summary.monthTotal, settings.currency)}
+          </Text>
         </View>
       </View>
 
@@ -100,7 +114,11 @@ export default function InsightsScreen() {
             </Text>
             <Text style={styles.focusValue}>{formatPercentage(strongestBudget.usageRatio)}</Text>
             <Text style={styles.focusMeta}>
-              {formatCurrency(strongestBudget.spent)} spent from {formatCurrency(strongestBudget.monthly_limit)}
+              {formatCurrencyWithCode(strongestBudget.spent, settings.currency)} spent from{" "}
+              {formatCurrencyWithCode(
+                strongestBudget.monthly_limit,
+                settings.currency,
+              )}
             </Text>
           </>
         ) : (
@@ -121,7 +139,9 @@ export default function InsightsScreen() {
             <View key={item.category} style={styles.breakdownItem}>
               <View style={styles.breakdownHeader}>
                 <Text style={styles.breakdownCategory}>{item.category}</Text>
-                <Text style={styles.breakdownAmount}>{formatCurrency(item.total)}</Text>
+                <Text style={styles.breakdownAmount}>
+                  {formatCurrencyWithCode(item.total, settings.currency)}
+                </Text>
               </View>
               <View style={styles.barTrack}>
                 <View

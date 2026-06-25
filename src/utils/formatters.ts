@@ -10,8 +10,18 @@ export function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-export function formatCompactCurrency(amount: number) {
+export function formatCurrencyWithCode(amount: number, currency = "BDT") {
   return new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function formatCompactCurrency(amount: number, currency = "BDT") {
+  return new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency,
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(amount);
@@ -27,16 +37,24 @@ export function formatDateTime(value: string) {
   }).format(parseExpenseDate(value));
 }
 
-export function formatRelativeWindow(total: number, count: number) {
+export function formatRelativeWindow(total: number, count: number, currency = "BDT") {
   if (count === 0) {
     return "No spending recorded yet";
   }
 
-  return `${formatCurrency(total)} across ${count} transaction${count === 1 ? "" : "s"}`;
+  return `${formatCurrencyWithCode(total, currency)} across ${count} transaction${
+    count === 1 ? "" : "s"
+  }`;
 }
 
 export function normalizeText(value: string) {
   return value.trim().replace(/\s+/g, " ");
+}
+
+export function normalizeCategory(value: string) {
+  return normalizeText(value)
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 export function formatTime(hour: number, minute: number) {

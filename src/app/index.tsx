@@ -12,8 +12,10 @@ import {
   getAllReminders,
   getBudgetProgress,
   getExpenseSummary,
+  getSettings,
 } from "@/database/expenseDatabase";
 import {
+  AppSettings,
   BudgetProgress,
   Expense,
   ExpenseSummary,
@@ -21,7 +23,7 @@ import {
 } from "@/database/expenseDatabase.types";
 import {
   formatCompactCurrency,
-  formatCurrency,
+  formatCurrencyWithCode,
   formatDateTime,
   formatPercentage,
 } from "@/utils/formatters";
@@ -32,6 +34,11 @@ export default function HomeScreen() {
   const [recentExpenses, setRecentExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<BudgetProgress[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({
+    currency: "BDT",
+    notifications_enabled: 1,
+    monthly_budget_start_day: 1,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -39,12 +46,13 @@ export default function HomeScreen() {
 
       async function loadDashboard() {
         try {
-          const [dashboardSummary, expenses, budgetProgress, allReminders] =
+          const [dashboardSummary, expenses, budgetProgress, allReminders, nextSettings] =
             await Promise.all([
               getExpenseSummary(),
               getAllExpenses(),
               getBudgetProgress(),
               getAllReminders(),
+              getSettings(),
             ]);
 
           if (!isActive) {
@@ -55,6 +63,7 @@ export default function HomeScreen() {
           setRecentExpenses(expenses.slice(0, 4));
           setBudgets(budgetProgress.slice(0, 3));
           setReminders(allReminders.filter((item) => item.enabled === 1).slice(0, 2));
+          setSettings(nextSettings);
         } catch (error) {
           console.log("Dashboard load error:", error);
         }
@@ -80,7 +89,9 @@ export default function HomeScreen() {
 
       <View style={styles.totalCard}>
         <Text style={styles.totalLabel}>Total Tracked Spending</Text>
-        <Text style={styles.totalAmount}>{formatCurrency(summary.total)}</Text>
+        <Text style={styles.totalAmount}>
+          {formatCurrencyWithCode(summary.total, settings.currency)}
+        </Text>
         <Text style={styles.totalMeta}>
           {summary.transactionCount} transaction{summary.transactionCount === 1 ? "" : "s"} logged
         </Text>
@@ -89,15 +100,21 @@ export default function HomeScreen() {
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Today</Text>
-          <Text style={styles.statValue}>{formatCompactCurrency(summary.todayTotal)}</Text>
+          <Text style={styles.statValue}>
+            {formatCompactCurrency(summary.todayTotal, settings.currency)}
+          </Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>This Week</Text>
-          <Text style={styles.statValue}>{formatCompactCurrency(summary.weekTotal)}</Text>
+          <Text style={styles.statValue}>
+            {formatCompactCurrency(summary.weekTotal, settings.currency)}
+          </Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>This Month</Text>
-          <Text style={styles.statValue}>{formatCompactCurrency(summary.monthTotal)}</Text>
+          <Text style={styles.statValue}>
+            {formatCompactCurrency(summary.monthTotal, settings.currency)}
+          </Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Top Category</Text>
@@ -150,7 +167,8 @@ export default function HomeScreen() {
               <Text style={styles.expenseAmount}>{formatPercentage(budget.usageRatio)}</Text>
             </View>
             <Text style={styles.budgetMeta}>
-              {formatCurrency(budget.spent)} of {formatCurrency(budget.monthly_limit)}
+              {formatCurrencyWithCode(budget.spent, settings.currency)} of{" "}
+              {formatCurrencyWithCode(budget.monthly_limit, settings.currency)}
             </Text>
             <View style={styles.barTrack}>
               <View
@@ -234,7 +252,9 @@ export default function HomeScreen() {
                   {expense.note?.trim() ? expense.note : "No note"}
                 </Text>
               </View>
-              <Text style={styles.expenseAmount}>{formatCurrency(expense.amount)}</Text>
+              <Text style={styles.expenseAmount}>
+                {formatCurrencyWithCode(expense.amount, settings.currency)}
+              </Text>
             </View>
             <Text style={styles.expenseDate}>{formatDateTime(expense.created_at)}</Text>
           </Pressable>

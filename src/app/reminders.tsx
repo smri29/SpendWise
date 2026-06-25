@@ -25,6 +25,7 @@ import {
   updateReminderNotificationId,
 } from "@/database/expenseDatabase";
 import {
+  AppSettings,
   Reminder,
   ReminderDraft,
   ReminderFrequency,
@@ -33,7 +34,12 @@ import {
   cancelReminderNotification,
   scheduleReminderNotification,
 } from "@/services/notifications";
-import { formatCurrency, formatTime, normalizeText } from "@/utils/formatters";
+import {
+  formatCurrencyWithCode,
+  formatTime,
+  normalizeCategory,
+  normalizeText,
+} from "@/utils/formatters";
 
 const initialDraft: ReminderDraft = {
   title: "",
@@ -53,10 +59,20 @@ export default function RemindersScreen() {
   const [amountHint, setAmountHint] = useState("");
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [settings, setSettings] = useState<AppSettings>({
+    currency: "BDT",
+    notifications_enabled: 1,
+    monthly_budget_start_day: 1,
+  });
 
   const loadReminders = useCallback(async () => {
     try {
-      setReminders(await getAllReminders());
+      const [nextReminders, nextSettings] = await Promise.all([
+        getAllReminders(),
+        getSettings(),
+      ]);
+      setReminders(nextReminders);
+      setSettings(nextSettings);
     } catch (error) {
       console.log("Load reminders error:", error);
     }
@@ -91,7 +107,11 @@ export default function RemindersScreen() {
     setAmountHint(reminder.amount_hint ? String(reminder.amount_hint) : "");
   }
 
-  async function syncNotification(existing: Reminder | null, reminderId: number, nextDraft: ReminderDraft) {
+  async function syncNotification(
+    existing: Reminder | null,
+    reminderId: number,
+    nextDraft: ReminderDraft,
+  ) {
     if (existing?.notification_id) {
       await cancelReminderNotification(existing.notification_id);
     }
@@ -105,11 +125,13 @@ export default function RemindersScreen() {
 
     const notificationId = await scheduleReminderNotification(nextDraft);
     await updateReminderNotificationId(reminderId, notificationId);
+
+    return Boolean(notificationId);
   }
 
   async function handleSaveReminder() {
     const normalizedTitle = normalizeText(draft.title);
-    const normalizedCategory = normalizeText(draft.category);
+    const normalizedCategory = normalizeCategory(draft.category);
     const nextAmount = amountHint ? Number(amountHint) : null;
 
     if (!normalizedTitle) {
@@ -133,10 +155,22 @@ export default function RemindersScreen() {
       if (editingId !== null) {
         const existing = reminders.find((item) => item.id === editingId) ?? null;
         await updateReminder(editingId, nextDraft);
-        await syncNotification(existing, editingId, nextDraft);
+        const didSchedule = await syncNotification(existing, editingId, nextDraft);
+        if (!didSchedule && nextDraft.enabled === 1 && settings.notifications_enabled === 1) {
+          Alert.alert(
+            "Reminder saved without scheduling",
+            "Android notification permission is missing or scheduling failed. Enable permission and save again.",
+          );
+        }
       } else {
         const reminderId = await insertReminder(nextDraft);
-        await syncNotification(null, reminderId, nextDraft);
+        const didSchedule = await syncNotification(null, reminderId, nextDraft);
+        if (!didSchedule && nextDraft.enabled === 1 && settings.notifications_enabled === 1) {
+          Alert.alert(
+            "Reminder saved without scheduling",
+            "Android notification permission is missing or scheduling failed. Enable permission and save again.",
+          );
+        }
       }
 
       resetForm();
@@ -358,11 +392,22 @@ export default function RemindersScreen() {
           <View key={reminder.id} style={styles.reminderCard}>
             <Text style={styles.reminderTitle}>{reminder.title}</Text>
             <Text style={styles.reminderMeta}>
-              {reminder.frequency} at {formatTime(reminder.hour, reminder.minute)}
+            {reminder.frequency} at {formatTime(reminder.hour, reminder.minute)}
+          </Text>
+          {reminder.amount_hint ? (
+              <Text style={styles.reminderMeta}>
+                Hint: {formatCurrencyWithCode(reminder.amount_hint, settings.currency)}
+              </Text>
+          ) : null}
+            <Text style={styles.reminderMeta}>
+              {settings.notifications_enabled !== 1
+                ? "Paused by app notification settings"
+                : reminder.enabled === 1 && reminder.notification_id
+                  ? "Scheduled"
+                  : reminder.enabled === 1
+                    ? "Needs notification permission"
+                    : "Saved without notification"}
             </Text>
-            {reminder.amount_hint ? (
-              <Text style={styles.reminderMeta}>Hint: {formatCurrency(reminder.amount_hint)}</Text>
-            ) : null}
             {reminder.note ? <Text style={styles.reminderNote}>{reminder.note}</Text> : null}
             <View style={styles.actionRow}>
               <Pressable style={styles.editButton} onPress={() => applyReminder(reminder)}>

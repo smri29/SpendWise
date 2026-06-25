@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-import { SpendWiseColors } from "@/constants/spendwise";
+import { CurrencyOptions, SpendWiseColors } from "@/constants/spendwise";
 import { getSettings, updateSettings } from "@/database/expenseDatabase";
 import { AppSettings } from "@/database/expenseDatabase.types";
 import {
@@ -63,6 +63,11 @@ export default function SettingsScreen() {
     await updateSettings({ monthly_budget_start_day: numeric });
     await loadSettings();
     Alert.alert("Saved", "Budget start day updated.");
+  }
+
+  async function saveCurrency(currency: string) {
+    await updateSettings({ currency });
+    await loadSettings();
   }
 
   function confirmReset() {
@@ -125,7 +130,7 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Budget cycle</Text>
         <Text style={styles.helperText}>
-          Choose the day of the month your budgeting cycle should conceptually begin.
+          Choose the day of the month your budgeting cycle should begin. Budget progress now follows this cycle.
         </Text>
         <TextInput
           style={styles.input}
@@ -136,6 +141,34 @@ export default function SettingsScreen() {
         <Pressable style={styles.primaryButton} onPress={saveBudgetStartDay}>
           <Text style={styles.primaryButtonText}>Save Budget Start Day</Text>
         </Pressable>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Currency</Text>
+        <Text style={styles.helperText}>
+          Pick the currency SpendWise should use for totals, budgets, and reminder hints.
+        </Text>
+        <View style={styles.currencyRow}>
+          {CurrencyOptions.map((item) => {
+            const active = item.value === settings.currency;
+            return (
+              <Pressable
+                key={item.value}
+                style={[styles.currencyChip, active && styles.currencyChipActive]}
+                onPress={() => saveCurrency(item.value)}
+              >
+                <Text
+                  style={[
+                    styles.currencyChipText,
+                    active && styles.currencyChipTextActive,
+                  ]}
+                >
+                  {item.value}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <View style={styles.card}>
@@ -218,6 +251,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   secondaryButtonText: { color: SpendWiseColors.text, fontWeight: "700", fontSize: 16 },
+  currencyRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  currencyChip: {
+    backgroundColor: SpendWiseColors.surfaceMuted,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  currencyChipActive: { backgroundColor: SpendWiseColors.primary },
+  currencyChipText: { color: SpendWiseColors.primary, fontWeight: "700" },
+  currencyChipTextActive: { color: "#FFFFFF" },
   privacyText: { fontSize: 14, color: SpendWiseColors.textMuted, lineHeight: 21 },
   deleteButton: {
     backgroundColor: SpendWiseColors.dangerSoft,

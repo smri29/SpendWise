@@ -50,6 +50,37 @@ function isInCurrentMonth(date: Date, now: Date) {
   );
 }
 
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+export function getBudgetCycleRange(startDay: number, now = new Date()) {
+  const normalizedStartDay = Math.min(Math.max(startDay, 1), 28);
+  const currentMonthStartDay = Math.min(
+    normalizedStartDay,
+    getDaysInMonth(now.getFullYear(), now.getMonth()),
+  );
+
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    currentMonthStartDay,
+    0,
+    0,
+    0,
+    0,
+  );
+
+  if (now < start) {
+    start.setMonth(start.getMonth() - 1);
+  }
+
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1);
+
+  return { start, end };
+}
+
 export function filterExpensesByPeriod(expenses: Expense[], filter: HistoryFilter) {
   if (filter === "all") {
     return expenses;
@@ -175,12 +206,14 @@ export function buildSmartTips(
   tips.push(
     `This month you logged ${summary.transactionCount} expense${
       summary.transactionCount === 1 ? "" : "s"
-    } with an average spend of ${summary.averageTransaction.toFixed(0)} taka.`,
+    } with an average spend of ${summary.averageTransaction.toFixed(0)}.`,
   );
 
   if (breakdown[0]) {
     tips.push(
-      `${breakdown[0].category} is your biggest category so far at ${(breakdown[0].share * 100).toFixed(0)}% of total spending.`,
+      `${breakdown[0].category} is your biggest category so far at ${(
+        breakdown[0].share * 100
+      ).toFixed(0)}% of total spending.`,
     );
   }
 
@@ -198,9 +231,11 @@ export function buildSmartTips(
   }
 
   if (summary.todayTotal > 0 && summary.weekTotal > summary.todayTotal) {
-    tips.push("Today’s total is below your weekly pace, which helps keep the week balanced.");
+    tips.push("Today's total is below your weekly pace, which helps keep the week balanced.");
   } else if (summary.todayTotal > 0) {
-    tips.push("Today carries a large share of this week’s spending, so it may be worth reviewing recent purchases.");
+    tips.push(
+      "Today carries a large share of this week's spending, so it may be worth reviewing recent purchases.",
+    );
   }
 
   return tips;
@@ -209,13 +244,21 @@ export function buildSmartTips(
 export function buildBudgetProgress(
   budgets: Budget[],
   expenses: Expense[],
+  budgetStartDay = 1,
 ): BudgetProgress[] {
-  const monthExpenses = filterExpensesByPeriod(expenses, "month");
+  const { start, end } = getBudgetCycleRange(budgetStartDay);
+  const cycleExpenses = expenses.filter((expense) => {
+    const date = parseExpenseDate(expense.created_at);
+    return date >= start && date < end;
+  });
 
   return budgets
     .map((budget) => {
-      const spent = monthExpenses
-        .filter((expense) => expense.category === budget.category)
+      const spent = cycleExpenses
+        .filter(
+          (expense) =>
+            expense.category.toLowerCase() === budget.category.toLowerCase(),
+        )
         .reduce((sum, expense) => sum + expense.amount, 0);
       const remaining = budget.monthly_limit - spent;
       const usageRatio = budget.monthly_limit <= 0 ? 0 : spent / budget.monthly_limit;

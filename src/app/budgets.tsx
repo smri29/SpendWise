@@ -11,18 +11,37 @@ import {
 } from "react-native";
 
 import { ExpenseCategories, SpendWiseColors } from "@/constants/spendwise";
-import { getBudgetProgress, upsertBudget, deleteBudget } from "@/database/expenseDatabase";
-import { BudgetProgress } from "@/database/expenseDatabase.types";
-import { formatCurrency, formatPercentage, normalizeText } from "@/utils/formatters";
+import {
+  deleteBudget,
+  getBudgetProgress,
+  getSettings,
+  upsertBudget,
+} from "@/database/expenseDatabase";
+import { AppSettings, BudgetProgress } from "@/database/expenseDatabase.types";
+import {
+  formatCurrencyWithCode,
+  formatPercentage,
+  normalizeCategory,
+} from "@/utils/formatters";
 
 export default function BudgetsScreen() {
   const [category, setCategory] = useState("");
   const [limit, setLimit] = useState("");
   const [budgets, setBudgets] = useState<BudgetProgress[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({
+    currency: "BDT",
+    notifications_enabled: 1,
+    monthly_budget_start_day: 1,
+  });
 
   const loadBudgets = useCallback(async () => {
     try {
-      setBudgets(await getBudgetProgress());
+      const [nextBudgets, nextSettings] = await Promise.all([
+        getBudgetProgress(),
+        getSettings(),
+      ]);
+      setBudgets(nextBudgets);
+      setSettings(nextSettings);
     } catch (error) {
       console.log("Load budgets error:", error);
     }
@@ -35,7 +54,7 @@ export default function BudgetsScreen() {
   );
 
   async function handleSaveBudget() {
-    const normalizedCategory = normalizeText(category);
+    const normalizedCategory = normalizeCategory(category);
     const numericLimit = Number(limit);
 
     if (!normalizedCategory || Number.isNaN(numericLimit) || numericLimit <= 0) {
@@ -120,7 +139,8 @@ export default function BudgetsScreen() {
               <Text style={styles.budgetPercent}>{formatPercentage(budget.usageRatio)}</Text>
             </View>
             <Text style={styles.budgetMeta}>
-              Spent {formatCurrency(budget.spent)} from {formatCurrency(budget.monthly_limit)}
+              Spent {formatCurrencyWithCode(budget.spent, settings.currency)} from{" "}
+              {formatCurrencyWithCode(budget.monthly_limit, settings.currency)}
             </Text>
             <Text
               style={[
@@ -133,8 +153,14 @@ export default function BudgetsScreen() {
               ]}
             >
               {budget.status === "over"
-                ? `Over by ${formatCurrency(Math.abs(budget.remaining))}`
-                : `Remaining ${formatCurrency(budget.remaining)}`}
+                ? `Over by ${formatCurrencyWithCode(
+                    Math.abs(budget.remaining),
+                    settings.currency,
+                  )}`
+                : `Remaining ${formatCurrencyWithCode(
+                    budget.remaining,
+                    settings.currency,
+                  )}`}
             </Text>
             <View style={styles.barTrack}>
               <View

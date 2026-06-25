@@ -20,7 +20,7 @@ import {
   insertExpense,
   updateExpense,
 } from "@/database/expenseDatabase";
-import { normalizeText } from "@/utils/formatters";
+import { normalizeCategory } from "@/utils/formatters";
 
 export default function AddExpenseScreen() {
   const router = useRouter();
@@ -51,6 +51,12 @@ export default function AddExpenseScreen() {
               setAmount(String(expense.amount));
               setCategory(expense.category);
               setNote(expense.note ?? "");
+            } else if (isActive) {
+              setAmount("");
+              setCategory("");
+              setNote("");
+              Alert.alert("Expense not found", "That expense could not be loaded.");
+              router.replace("/expenses");
             }
           } else if (isActive) {
             setAmount("");
@@ -72,11 +78,11 @@ export default function AddExpenseScreen() {
       return () => {
         isActive = false;
       };
-    }, [isEditing, parsedExpenseId]),
+    }, [isEditing, parsedExpenseId, router]),
   );
 
   async function handleSaveExpense() {
-    const normalizedCategory = normalizeText(category);
+    const normalizedCategory = normalizeCategory(category);
     const normalizedNote = note.trim();
 
     if (!amount || !normalizedCategory) {

@@ -17,6 +17,7 @@ import {
   buildExpenseSummary,
   getRecentCategories as deriveRecentCategories,
 } from "@/database/expenseAnalytics";
+import { normalizeCategory } from "@/utils/formatters";
 
 const defaultSettings: AppSettings = {
   currency: "BDT",
@@ -92,7 +93,7 @@ export async function insertExpense(
     INSERT INTO expenses (amount, category, note)
     VALUES (?, ?, ?);
     `,
-    [amount, category, note || null],
+    [amount, normalizeCategory(category), note || null],
   );
 
   return result.lastInsertRowId;
@@ -111,7 +112,7 @@ export async function updateExpense(
     SET amount = ?, category = ?, note = ?
     WHERE id = ?;
     `,
-    [amount, category, note || null, id],
+    [amount, normalizeCategory(category), note || null, id],
   );
 }
 
@@ -165,7 +166,7 @@ export async function upsertBudget(category: string, monthlyLimit: number) {
     VALUES (?, ?)
     ON CONFLICT(category) DO UPDATE SET monthly_limit = excluded.monthly_limit;
     `,
-    [category, monthlyLimit],
+    [normalizeCategory(category), monthlyLimit],
   );
 }
 
@@ -186,8 +187,12 @@ export async function getAllBudgets(): Promise<Budget[]> {
 }
 
 export async function getBudgetProgress(): Promise<BudgetProgress[]> {
-  const [budgets, expenses] = await Promise.all([getAllBudgets(), getAllExpenses()]);
-  return buildBudgetProgress(budgets, expenses);
+  const [budgets, expenses, settings] = await Promise.all([
+    getAllBudgets(),
+    getAllExpenses(),
+    getSettings(),
+  ]);
+  return buildBudgetProgress(budgets, expenses, settings.monthly_budget_start_day);
 }
 
 export async function insertReminder(reminder: ReminderDraft) {
@@ -208,9 +213,9 @@ export async function insertReminder(reminder: ReminderDraft) {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
-      reminder.title,
-      reminder.category || null,
-      reminder.note || null,
+        reminder.title,
+        reminder.category ? normalizeCategory(reminder.category) : null,
+        reminder.note || null,
       reminder.amount_hint,
       reminder.frequency,
       reminder.hour,
@@ -234,7 +239,7 @@ export async function updateReminder(id: number, reminder: ReminderDraft) {
     `,
     [
       reminder.title,
-      reminder.category || null,
+      reminder.category ? normalizeCategory(reminder.category) : null,
       reminder.note || null,
       reminder.amount_hint,
       reminder.frequency,

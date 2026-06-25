@@ -15,10 +15,14 @@ import {
   filterExpensesByPeriod,
   searchExpenses,
 } from "@/database/expenseAnalytics";
-import { deleteExpense, getAllExpenses } from "@/database/expenseDatabase";
-import { Expense, HistoryFilter } from "@/database/expenseDatabase.types";
 import {
-  formatCurrency,
+  deleteExpense,
+  getAllExpenses,
+  getSettings,
+} from "@/database/expenseDatabase";
+import { AppSettings, Expense, HistoryFilter } from "@/database/expenseDatabase.types";
+import {
+  formatCurrencyWithCode,
   formatDateTime,
   formatRelativeWindow,
 } from "@/utils/formatters";
@@ -28,6 +32,11 @@ export default function ExpensesScreen() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<HistoryFilter>("all");
+  const [settings, setSettings] = useState<AppSettings>({
+    currency: "BDT",
+    notifications_enabled: 1,
+    monthly_budget_start_day: 1,
+  });
 
   const filteredExpenses = useMemo(() => {
     return filterExpensesByPeriod(searchExpenses(expenses, query), filter);
@@ -41,10 +50,14 @@ export default function ExpensesScreen() {
 
       async function loadExpenses() {
         try {
-          const savedExpenses = await getAllExpenses();
-          if (isActive) {
-            setExpenses(savedExpenses);
-          }
+            const [savedExpenses, nextSettings] = await Promise.all([
+              getAllExpenses(),
+              getSettings(),
+            ]);
+            if (isActive) {
+              setExpenses(savedExpenses);
+              setSettings(nextSettings);
+            }
         } catch (error) {
           console.log("Load expenses error:", error);
         }
@@ -61,7 +74,7 @@ export default function ExpensesScreen() {
   function confirmDelete(expense: Expense) {
     Alert.alert(
       "Delete expense?",
-      `${expense.category} - ${formatCurrency(expense.amount)}`,
+      `${expense.category} - ${formatCurrencyWithCode(expense.amount, settings.currency)}`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -93,9 +106,15 @@ export default function ExpensesScreen() {
         <View style={styles.header}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Expense History</Text>
-            <Text style={styles.summaryAmount}>{formatCurrency(filteredTotal)}</Text>
+            <Text style={styles.summaryAmount}>
+              {formatCurrencyWithCode(filteredTotal, settings.currency)}
+            </Text>
             <Text style={styles.summaryMeta}>
-              {formatRelativeWindow(filteredTotal, filteredExpenses.length)}
+              {formatRelativeWindow(
+                filteredTotal,
+                filteredExpenses.length,
+                settings.currency,
+              )}
             </Text>
           </View>
 
@@ -147,7 +166,9 @@ export default function ExpensesScreen() {
           >
             <View style={styles.expenseHeader}>
               <Text style={styles.expenseCategory}>{item.category}</Text>
-              <Text style={styles.expenseAmount}>{formatCurrency(item.amount)}</Text>
+              <Text style={styles.expenseAmount}>
+                {formatCurrencyWithCode(item.amount, settings.currency)}
+              </Text>
             </View>
             <Text style={styles.expenseNote}>{item.note?.trim() ? item.note : "No note"}</Text>
             <Text style={styles.expenseDate}>{formatDateTime(item.created_at)}</Text>

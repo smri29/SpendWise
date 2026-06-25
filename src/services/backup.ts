@@ -17,6 +17,71 @@ function createBackupFile() {
   return new File(Paths.document, BACKUP_FILE_NAME);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isValidExpense(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.amount === "number" &&
+    typeof value.category === "string" &&
+    (typeof value.note === "string" || value.note === null) &&
+    typeof value.created_at === "string"
+  );
+}
+
+function isValidBudget(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.category === "string" &&
+    typeof value.monthly_limit === "number" &&
+    typeof value.created_at === "string"
+  );
+}
+
+function isValidReminder(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.id === "number" &&
+    typeof value.title === "string" &&
+    (typeof value.category === "string" || value.category === null) &&
+    (typeof value.note === "string" || value.note === null) &&
+    (typeof value.amount_hint === "number" || value.amount_hint === null) &&
+    typeof value.frequency === "string" &&
+    typeof value.hour === "number" &&
+    typeof value.minute === "number" &&
+    (typeof value.day_of_week === "number" || value.day_of_week === null) &&
+    (typeof value.day_of_month === "number" || value.day_of_month === null) &&
+    typeof value.enabled === "number" &&
+    (typeof value.notification_id === "string" || value.notification_id === null) &&
+    typeof value.created_at === "string"
+  );
+}
+
+function isValidBackup(value: unknown): value is SpendWiseBackup {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    value.schemaVersion === 1 &&
+    typeof value.exportedAt === "string" &&
+    Array.isArray(value.expenses) &&
+    value.expenses.every(isValidExpense) &&
+    Array.isArray(value.budgets) &&
+    value.budgets.every(isValidBudget) &&
+    Array.isArray(value.reminders) &&
+    value.reminders.every(isValidReminder) &&
+    isRecord(value.settings) &&
+    typeof value.settings.currency === "string" &&
+    typeof value.settings.notifications_enabled === "number" &&
+    typeof value.settings.monthly_budget_start_day === "number"
+  );
+}
+
 export async function shareBackupFile() {
   const backup = await exportSpendWiseBackup();
   const file = createBackupFile();
@@ -40,11 +105,6 @@ export async function importBackupFromPicker() {
     throw new Error("Backup import is only enabled for Android in this build.");
   }
 
-  const currentReminders = await getAllReminders();
-  for (const reminder of currentReminders) {
-    await cancelReminderNotification(reminder.notification_id);
-  }
-
   const result = await File.pickFileAsync({
     mimeTypes: ["application/json"],
   });
@@ -54,9 +114,14 @@ export async function importBackupFromPicker() {
   }
 
   const text = await result.result.text();
-  const parsed = JSON.parse(text) as SpendWiseBackup;
-  if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.expenses)) {
+  const parsed = JSON.parse(text) as unknown;
+  if (!isValidBackup(parsed)) {
     throw new Error("Invalid SpendWise backup file.");
+  }
+
+  const currentReminders = await getAllReminders();
+  for (const reminder of currentReminders) {
+    await cancelReminderNotification(reminder.notification_id);
   }
 
   await importSpendWiseBackup(parsed);

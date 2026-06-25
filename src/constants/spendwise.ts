@@ -51,3 +51,10 @@ export const Weekdays = [
   { value: 6, label: "Fri" },
   { value: 7, label: "Sat" },
 ] as const;
+
+export const CurrencyOptions = [
+  { value: "BDT", label: "Bangladeshi Taka" },
+  { value: "USD", label: "US Dollar" },
+  { value: "EUR", label: "Euro" },
+  { value: "GBP", label: "British Pound" },
+] as const;
