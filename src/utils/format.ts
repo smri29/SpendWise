@@ -52,6 +52,27 @@ export function formatCurrency(amount: number, currencySymbol: string) {
   return `${currencySymbol}${formatted}`;
 }
 
+export function normalizeCurrencySymbol(value: string) {
+  switch (value) {
+    case "EUR":
+      return "EUR ";
+    case "GBP":
+      return "GBP ";
+    case "BDT":
+      return "BDT ";
+    case "INR":
+      return "INR ";
+    case "JPY":
+      return "JPY ";
+    default:
+      return value;
+  }
+}
+
+export function formatMoney(amount: number, currencySymbol: string) {
+  return formatCurrency(amount, normalizeCurrencySymbol(currencySymbol));
+}
+
 export function formatNumericInputForAmount(value: string) {
   const normalized = value.replace(/[^0-9.]/g, "");
   const [whole = "", ...rest] = normalized.split(".");
@@ -159,7 +180,13 @@ export function parseReminderTime(value: string) {
   const [hourRaw, minuteRaw] = value.split(":");
   const hour = Number.parseInt(hourRaw ?? "20", 10);
   const minute = Number.parseInt(minuteRaw ?? "0", 10);
-  return new Date(2026, 7, 6, Number.isFinite(hour) ? hour : 20, Number.isFinite(minute) ? minute : 0);
+  return new Date(
+    2026,
+    7,
+    6,
+    Number.isFinite(hour) ? hour : 20,
+    Number.isFinite(minute) ? minute : 0,
+  );
 }
 
 function isTransactionType(value: unknown): value is "EXPENSE" | "INCOME" {

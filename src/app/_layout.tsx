@@ -7,7 +7,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SystemUI from "expo-system-ui";
 
 import { initializeDatabaseAsync } from "@/db";
-import { prepareDailyReminderNotificationsAsync, syncDailyReminderNotificationAsync } from "@/services/reminders";
+import {
+  prepareDailyReminderNotificationsAsync,
+  syncDailyReminderNotificationAsync,
+} from "@/services/reminders";
 import { SpendWiseTheme } from "@/theme/spendwise";
 
 export default function RootLayout() {
@@ -26,7 +29,8 @@ export default function RootLayout() {
       await syncDailyReminderNotificationAsync();
       setBootstrapError(null);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to initialize SpendWise.";
+      const message =
+        error instanceof Error ? error.message : "Unable to initialize SpendWise.";
       console.log("SpendWise bootstrap error:", error);
       setBootstrapError(message);
     }

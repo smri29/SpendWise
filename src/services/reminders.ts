@@ -61,7 +61,7 @@ export async function syncDailyReminderNotificationAsync() {
     identifier: DAILY_REMINDER_IDENTIFIER,
     content: {
       title: "SpendWise reminder",
-      body: "Log today’s spending while it is still fresh.",
+      body: "Log today's spending while it is still fresh.",
       sound: false,
     },
     trigger: {

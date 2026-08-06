@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 import { type CategoryBreakdownItem } from "@/db/types";
-import { formatCurrency } from "@/utils/format";
+import { formatMoney } from "@/utils/format";
 import { SpendWiseTheme } from "@/theme/spendwise";
 
 type DonutChartProps = {
@@ -67,7 +67,9 @@ export function DonutChart({ data }: DonutChartProps) {
 
         <View style={styles.centerLabel}>
           <Text style={styles.centerLabelTitle}>This Month</Text>
-          <Text style={styles.centerLabelValue}>{formatCurrency(total, "")}</Text>
+          <Text style={styles.centerLabelValue}>
+            {formatMoney(total, data[0]?.currencySymbol ?? "$")}
+          </Text>
         </View>
       </View>
 
@@ -83,7 +85,8 @@ export function DonutChart({ data }: DonutChartProps) {
             <View style={styles.legendCopy}>
               <Text style={styles.legendName}>{item.categoryName}</Text>
               <Text style={styles.legendMeta}>
-                {item.sharePercent.toFixed(0)}% • {formatCurrency(item.totalAmount, item.currencySymbol)}
+                {item.sharePercent.toFixed(0)}% |{" "}
+                {formatMoney(item.totalAmount, item.currencySymbol)}
               </Text>
             </View>
           </View>

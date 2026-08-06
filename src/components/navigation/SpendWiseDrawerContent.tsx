@@ -42,7 +42,7 @@ export function SpendWiseDrawerContent(props: DrawerContentComponentProps) {
     >
       <View style={styles.header}>
         <Text style={styles.logo}>SpendWise</Text>
-        <Text style={styles.tagline}>Local • Private • Simple Budgeting</Text>
+        <Text style={styles.tagline}>Local | Private | Simple Budgeting</Text>
       </View>
 
       <View style={styles.menuCard}>

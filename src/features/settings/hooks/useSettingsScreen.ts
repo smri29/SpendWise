@@ -1,0 +1,168 @@
+import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { Alert, Platform } from "react-native";
+
+import {
+  clearAllDataAsync,
+  exportBackupJsonAsync,
+  getSettingsSnapshot,
+  getStorageSnapshotAsync,
+  importBackupJsonAsync,
+  saveSettingsSnapshotAsync,
+  type SettingsSnapshot,
+  type StorageSnapshot,
+} from "@/db";
+import { syncDailyReminderNotificationAsync } from "@/services/reminders";
+import { formatReminderTime, parseReminderTime } from "@/utils/format";
+
+const defaultSettings: SettingsSnapshot = {
+  currencySymbol: "$",
+  retentionMonths: 3,
+  dailyReminderEnabled: true,
+  dailyReminderTime: "20:00",
+};
+
+const defaultStorage: StorageSnapshot = {
+  categoriesCount: 0,
+  transactionsCount: 0,
+  settingsCount: 0,
+  estimatedBytes: 0,
+};
+
+export function useSettingsScreen() {
+  const [settings, setSettings] = useState<SettingsSnapshot>(defaultSettings);
+  const [storage, setStorage] = useState<StorageSnapshot>(defaultStorage);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const [nextSettings, nextStorage] = await Promise.all([
+        getSettingsSnapshot(),
+        getStorageSnapshotAsync(),
+      ]);
+      setSettings(nextSettings);
+      setStorage(nextStorage);
+      setErrorMessage(null);
+    } catch (error) {
+      console.log("Settings load error:", error);
+      setErrorMessage("Unable to read app settings from local storage.");
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadSettings();
+    }, [loadSettings]),
+  );
+
+  async function patchSettings(partial: Partial<SettingsSnapshot>) {
+    const nextSettings = { ...settings, ...partial };
+    setSettings(nextSettings);
+    try {
+      await saveSettingsSnapshotAsync(nextSettings);
+      await syncDailyReminderNotificationAsync();
+      await loadSettings();
+    } catch (error) {
+      console.log("Settings save error:", error);
+      Alert.alert("Save failed", "Your change could not be saved locally.");
+    }
+  }
+
+  function handleTimeChange(event: DateTimePickerEvent, nextDate?: Date) {
+    if (Platform.OS === "android") {
+      setShowTimePicker(false);
+    }
+
+    if (event.type === "dismissed" || !nextDate) {
+      return;
+    }
+
+    const value = formatReminderTime(nextDate);
+    void patchSettings({ dailyReminderTime: value });
+  }
+
+  function confirmClearAllData() {
+    Alert.alert("Clear all data?", "This deletes all local categories, transactions, and settings.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Continue",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert("Are you sure?", "This cannot be undone.", [
+            { text: "Keep Data", style: "cancel" },
+            {
+              text: "Delete Everything",
+              style: "destructive",
+              onPress: async () => {
+                try {
+                  await clearAllDataAsync();
+                  await syncDailyReminderNotificationAsync();
+                  await loadSettings();
+                } catch (error) {
+                  console.log("Clear data error:", error);
+                  Alert.alert("Delete failed", "Local data could not be cleared.");
+                }
+              },
+            },
+          ]);
+        },
+      },
+    ]);
+  }
+
+  async function handleBackupExport() {
+    try {
+      await exportBackupJsonAsync();
+    } catch (error) {
+      console.log("Backup export error:", error);
+      Alert.alert("Backup failed", "The JSON backup could not be created.");
+    }
+  }
+
+  async function handleBackupImport() {
+    try {
+      setIsImporting(true);
+      const didImport = await importBackupJsonAsync();
+      if (didImport) {
+        await syncDailyReminderNotificationAsync();
+        await loadSettings();
+      }
+    } catch (error) {
+      console.log("Backup import error:", error);
+      Alert.alert("Restore failed", "The selected backup file could not be restored.");
+    } finally {
+      setIsImporting(false);
+    }
+  }
+
+  const reminderDate = useMemo(
+    () => parseReminderTime(settings.dailyReminderTime),
+    [settings.dailyReminderTime],
+  );
+
+  const retentionSummary =
+    settings.retentionMonths > 0
+      ? `Auto-delete after ${settings.retentionMonths} month${
+          settings.retentionMonths === 1 ? "" : "s"
+        }`
+      : "Auto-delete disabled";
+
+  return {
+    errorMessage,
+    isImporting,
+    reminderDate,
+    retentionSummary,
+    settings,
+    showTimePicker,
+    storage,
+    confirmClearAllData,
+    handleBackupExport,
+    handleBackupImport,
+    handleTimeChange,
+    patchSettings,
+    setShowTimePicker,
+  };
+}
