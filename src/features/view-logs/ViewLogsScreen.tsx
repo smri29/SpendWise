@@ -1,10 +1,9 @@
 import { Text, View } from "react-native";
 
 import { ScreenFrame } from "@/components/ui/ScreenFrame";
-import { SegmentControl } from "@/components/ui/SegmentControl";
 import { SummaryPill } from "@/components/ui/SummaryPill";
-import { viewLogPeriodOptions, viewLogTypeOptions } from "@/features/view-logs/constants";
-import { LogsTable } from "@/features/view-logs/components/LogsTable";
+import { FilterPanel } from "@/features/view-logs/components/FilterPanel";
+import { LogsList } from "@/features/view-logs/components/LogsList";
 import { ViewLogsEmptyState } from "@/features/view-logs/components/ViewLogsEmptyState";
 import { ViewLogsHeader } from "@/features/view-logs/components/ViewLogsHeader";
 import { useViewLogs } from "@/features/view-logs/hooks/useViewLogs";
@@ -15,21 +14,17 @@ export default function ViewLogsScreen() {
   const viewLogs = useViewLogs();
 
   return (
-    <ScreenFrame scrollable={false} contentContainerStyle={styles.content}>
+    <ScreenFrame contentContainerStyle={styles.content}>
       <ViewLogsHeader
         isExporting={viewLogs.isExporting}
         onExport={() => void viewLogs.handleExport()}
       />
 
-      <SegmentControl
-        options={viewLogTypeOptions}
-        value={viewLogs.typeFilter}
-        onChange={viewLogs.setTypeFilter}
-      />
-      <SegmentControl
-        options={viewLogPeriodOptions}
-        value={viewLogs.periodFilter}
-        onChange={viewLogs.setPeriodFilter}
+      <FilterPanel
+        typeFilter={viewLogs.typeFilter}
+        periodFilter={viewLogs.periodFilter}
+        onTypeChange={viewLogs.setTypeFilter}
+        onPeriodChange={viewLogs.setPeriodFilter}
       />
 
       <View style={styles.cardsRow}>
@@ -46,15 +41,18 @@ export default function ViewLogsScreen() {
       </View>
 
       <Text style={styles.tableHint}>
-        Hold a row or tap Delete to remove it. Scroll sideways to see the full table.
+        Every log is shown in a full-width card so you can scan date, category, note, and amount
+        without sideways scrolling.
       </Text>
 
-      {viewLogs.errorMessage ? <Text style={styles.inlineError}>{viewLogs.errorMessage}</Text> : null}
+      {viewLogs.errorMessage ? (
+        <Text style={styles.inlineError}>{viewLogs.errorMessage}</Text>
+      ) : null}
 
       {viewLogs.rows.length === 0 ? (
         <ViewLogsEmptyState />
       ) : (
-        <LogsTable
+        <LogsList
           rows={viewLogs.rows}
           settings={viewLogs.settings}
           onDelete={(item) => void viewLogs.handleDelete(item)}

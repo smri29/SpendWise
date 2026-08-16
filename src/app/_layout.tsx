@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SystemUI from "expo-system-ui";
 
+import { AppLockGate } from "@/components/security/AppLockGate";
 import { initializeDatabaseAsync } from "@/db";
 import {
   prepareDailyReminderNotificationsAsync,
@@ -47,6 +48,7 @@ export default function RootLayout() {
           </View>
         ) : null}
         <Slot />
+        <AppLockGate />
       </SQLiteProvider>
     </GestureHandlerRootView>
   );

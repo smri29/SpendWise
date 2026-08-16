@@ -17,6 +17,9 @@ export function GeneralPreferencesSection({
   return (
     <View style={styles.sectionCard}>
       <Text style={styles.sectionTitle}>General Preferences</Text>
+      <Text style={styles.sectionCaption}>
+        Set how money appears across home, logs, analytics, and exports.
+      </Text>
       <Text style={styles.rowLabel}>Currency</Text>
       <SegmentControl
         options={currencyOptions}

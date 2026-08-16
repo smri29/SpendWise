@@ -5,6 +5,7 @@ import { SpendWiseTheme } from "@/theme/spendwise";
 export const viewLogsStyles = StyleSheet.create({
   content: {
     paddingTop: 118,
+    paddingBottom: 36,
     gap: 14,
   },
   headerRow: {
@@ -38,6 +39,22 @@ export const viewLogsStyles = StyleSheet.create({
     flexDirection: "row",
     gap: 14,
   },
+  filterPanel: {
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.64)",
+    padding: 18,
+    gap: 16,
+  },
+  filterSection: {
+    gap: 10,
+  },
+  filterLabel: {
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
   tableHint: {
     color: SpendWiseTheme.colors.textMuted,
     fontSize: 13,
@@ -66,80 +83,94 @@ export const viewLogsStyles = StyleSheet.create({
     color: SpendWiseTheme.colors.textMuted,
     lineHeight: 20,
   },
-  tableScrollContent: {
-    paddingBottom: 20,
+  logsList: {
+    gap: 14,
+    paddingBottom: 6,
   },
-  table: {
-    width: 760,
-    borderWidth: 2,
-    borderColor: "#171717",
-    backgroundColor: "rgba(255,255,255,0.12)",
+  logCard: {
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.76)",
+    padding: 18,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: "rgba(238,229,162,0.95)",
   },
-  tableHeader: {
-    backgroundColor: "rgba(255,255,255,0.22)",
-  },
-  tableRow: {
-    minHeight: 92,
+  logCardTopRow: {
     flexDirection: "row",
-    borderBottomWidth: 2,
-    borderColor: "#171717",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
   },
-  headerCell: {
-    fontSize: 17,
+  logMainBlock: {
+    flex: 1,
+    gap: 6,
+  },
+  logCategory: {
+    color: SpendWiseTheme.colors.text,
+    fontSize: 23,
     fontWeight: "800",
-    color: "#000000",
-    padding: 16,
   },
-  bodyCell: {
+  logDate: {
+    color: SpendWiseTheme.colors.textMuted,
     fontSize: 14,
-    color: "#1C1C1C",
-    padding: 14,
+    lineHeight: 20,
   },
-  cellDate: {
-    width: 150,
-    borderRightWidth: 2,
-    borderColor: "#171717",
+  logAmountBlock: {
+    alignItems: "flex-end",
+    gap: 8,
   },
-  cellCategory: {
-    width: 170,
-    borderRightWidth: 2,
-    borderColor: "#171717",
+  logAmount: {
+    fontSize: 20,
+    fontWeight: "900",
   },
-  cellNote: {
-    width: 260,
-    borderRightWidth: 2,
-    borderColor: "#171717",
-  },
-  cellAmount: {
-    width: 180,
-  },
-  categoryCell: {
-    padding: 14,
-    justifyContent: "space-between",
-  },
-  categoryName: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: SpendWiseTheme.colors.text,
-  },
-  typeBadge: {
-    marginTop: 8,
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  logTypeBadge: {
     borderRadius: 999,
-    backgroundColor: "rgba(26,35,126,0.10)",
-    color: SpendWiseTheme.colors.text,
-    fontSize: 11,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 12,
     fontWeight: "800",
+    overflow: "hidden",
   },
-  amountCell: {
+  expenseBadge: {
+    backgroundColor: "rgba(198,40,40,0.10)",
+    color: SpendWiseTheme.colors.expense,
+  },
+  incomeBadge: {
+    backgroundColor: "rgba(46,125,50,0.10)",
+    color: SpendWiseTheme.colors.income,
+  },
+  logMetaGrid: {
+    gap: 10,
+  },
+  logMetaItem: {
+    borderRadius: 18,
+    backgroundColor: "rgba(255,253,231,0.88)",
     padding: 14,
-    justifyContent: "space-between",
+    gap: 6,
   },
-  amountText: {
-    fontSize: 16,
+  logMetaLabel: {
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 12,
     fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  logMetaValue: {
+    color: SpendWiseTheme.colors.text,
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  logActionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  logActionHint: {
+    flex: 1,
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
   },
   amountExpense: {
     color: SpendWiseTheme.colors.expense,
@@ -151,12 +182,12 @@ export const viewLogsStyles = StyleSheet.create({
     alignSelf: "flex-start",
     borderRadius: 999,
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
   },
   deleteChipText: {
     color: SpendWiseTheme.colors.expense,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "800",
   },
 });

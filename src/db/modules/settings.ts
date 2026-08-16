@@ -8,6 +8,12 @@ export const settingsDefaults: SettingsSnapshot = {
   retentionMonths: 3,
   dailyReminderEnabled: true,
   dailyReminderTime: "20:00",
+  appLockEnabled: false,
+  pdfReportLastExportAt: null,
+  driveBackupEnabled: false,
+  driveBackupFrequencyDays: 15,
+  driveBackupLastRunAt: null,
+  driveConnectedEmail: null,
 };
 
 export async function getSettingsSnapshot(): Promise<SettingsSnapshot> {
@@ -27,6 +33,28 @@ export async function getSettingsSnapshot(): Promise<SettingsSnapshot> {
         settingsDefaults.dailyReminderEnabled,
       ),
       dailyReminderTime: map.get("daily_reminder_time") ?? settingsDefaults.dailyReminderTime,
+      appLockEnabled: parseBooleanSetting(
+        map.get("app_lock_enabled"),
+        settingsDefaults.appLockEnabled,
+      ),
+      pdfReportLastExportAt: parseNullableNumber(
+        map.get("pdf_report_last_export_at"),
+        settingsDefaults.pdfReportLastExportAt,
+      ),
+      driveBackupEnabled: parseBooleanSetting(
+        map.get("drive_backup_enabled"),
+        settingsDefaults.driveBackupEnabled,
+      ),
+      driveBackupFrequencyDays: Number.parseInt(
+        map.get("drive_backup_frequency_days") ?? String(settingsDefaults.driveBackupFrequencyDays),
+        10,
+      ),
+      driveBackupLastRunAt: parseNullableNumber(
+        map.get("drive_backup_last_run_at"),
+        settingsDefaults.driveBackupLastRunAt,
+      ),
+      driveConnectedEmail:
+        map.get("drive_connected_email")?.trim() || settingsDefaults.driveConnectedEmail,
     };
   } catch (error) {
     console.log("getSettingsSnapshot error:", error);
@@ -42,6 +70,12 @@ export async function saveSettingsSnapshotAsync(settings: SettingsSnapshot) {
       ["retention_months", String(settings.retentionMonths)],
       ["daily_reminder_enabled", String(settings.dailyReminderEnabled)],
       ["daily_reminder_time", settings.dailyReminderTime],
+      ["app_lock_enabled", String(settings.appLockEnabled)],
+      ["pdf_report_last_export_at", settings.pdfReportLastExportAt ? String(settings.pdfReportLastExportAt) : ""],
+      ["drive_backup_enabled", String(settings.driveBackupEnabled)],
+      ["drive_backup_frequency_days", String(settings.driveBackupFrequencyDays)],
+      ["drive_backup_last_run_at", settings.driveBackupLastRunAt ? String(settings.driveBackupLastRunAt) : ""],
+      ["drive_connected_email", settings.driveConnectedEmail ?? ""],
     ];
 
     for (const [key, value] of entries) {
@@ -60,4 +94,13 @@ export async function saveSettingsSnapshotAsync(settings: SettingsSnapshot) {
     console.log("saveSettingsSnapshotAsync error:", error);
     throw error;
   }
+}
+
+function parseNullableNumber(value: string | undefined, fallback: number | null) {
+  if (!value || !value.trim()) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }

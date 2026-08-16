@@ -13,9 +13,25 @@ export const settingsStyles = StyleSheet.create({
     fontWeight: "800",
     color: SpendWiseTheme.colors.text,
   },
+  heroCard: {
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.64)",
+    padding: 20,
+    gap: 8,
+  },
+  heroTitle: {
+    color: SpendWiseTheme.colors.text,
+    fontSize: 30,
+    fontWeight: "800",
+  },
+  heroText: {
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   sectionCard: {
     borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.56)",
+    backgroundColor: "rgba(255,255,255,0.64)",
     padding: 20,
     gap: 12,
   },
@@ -24,6 +40,11 @@ export const settingsStyles = StyleSheet.create({
     fontWeight: "800",
     color: "#000000",
     letterSpacing: 0.3,
+  },
+  sectionCaption: {
+    color: SpendWiseTheme.colors.textMuted,
+    lineHeight: 20,
+    fontSize: 14,
   },
   rowLabel: {
     fontSize: 15,
@@ -39,6 +60,11 @@ export const settingsStyles = StyleSheet.create({
     color: SpendWiseTheme.colors.text,
     fontSize: 14,
     lineHeight: 20,
+  },
+  metaText: {
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
   },
   secondaryButton: {
     borderRadius: 18,
@@ -70,9 +96,21 @@ export const settingsStyles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 16,
   },
+  stripRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 16,
+  },
   toggleCopy: {
     flex: 1,
     gap: 4,
+  },
+  cloudCard: {
+    borderRadius: 22,
+    backgroundColor: "rgba(255,253,231,0.88)",
+    padding: 16,
+    gap: 12,
   },
   reminderTimeCard: {
     borderRadius: 18,

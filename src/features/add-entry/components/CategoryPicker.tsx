@@ -24,7 +24,10 @@ export function CategoryPicker({
             style={[styles.categoryChip, active && styles.categoryChipActive]}
             onPress={() => onSelect(item.id)}
           >
-            <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
+            <Text
+              numberOfLines={2}
+              style={[styles.categoryChipText, active && styles.categoryChipTextActive]}
+            >
               {item.name}
             </Text>
           </Pressable>

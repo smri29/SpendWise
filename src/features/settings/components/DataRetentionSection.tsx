@@ -30,6 +30,9 @@ export function DataRetentionSection({
   return (
     <View style={styles.sectionCard}>
       <Text style={styles.sectionTitle}>Data Retention & Storage</Text>
+      <Text style={styles.sectionCaption}>
+        Decide how long local history stays on this device and manage manual backup files.
+      </Text>
       <Text style={styles.rowLabel}>Auto-Delete History</Text>
       <SegmentControl
         options={retentionOptions}

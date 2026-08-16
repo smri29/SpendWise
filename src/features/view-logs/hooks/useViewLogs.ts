@@ -18,6 +18,12 @@ const defaultSettings: SettingsSnapshot = {
   retentionMonths: 3,
   dailyReminderEnabled: true,
   dailyReminderTime: "20:00",
+  appLockEnabled: false,
+  pdfReportLastExportAt: null,
+  driveBackupEnabled: false,
+  driveBackupFrequencyDays: 15,
+  driveBackupLastRunAt: null,
+  driveConnectedEmail: null,
 };
 
 export function useViewLogs() {

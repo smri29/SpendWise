@@ -6,8 +6,10 @@ import * as Haptics from "expo-haptics";
 
 import {
   createTransactionAsync,
+  getSettingsSnapshot,
   listCategoriesByTypeAsync,
   type CategoryRow,
+  type SettingsSnapshot,
   type TransactionType,
 } from "@/db";
 import {
@@ -32,11 +34,16 @@ export function useAddEntryForm() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currencySymbol, setCurrencySymbol] = useState<SettingsSnapshot["currencySymbol"]>("$");
 
   const loadCategories = useCallback(async () => {
     try {
-      const nextCategories = await listCategoriesByTypeAsync(entryType);
+      const [nextCategories, settings] = await Promise.all([
+        listCategoriesByTypeAsync(entryType),
+        getSettingsSnapshot(),
+      ]);
       setCategories(nextCategories);
+      setCurrencySymbol(settings.currencySymbol);
       setSelectedCategoryId((current) => {
         if (current && nextCategories.some((item) => item.id === current)) {
           return current;
@@ -141,6 +148,7 @@ export function useAddEntryForm() {
   return {
     amountInput,
     categories,
+    currencySymbol,
     entryType,
     errorMessage,
     isSaving,

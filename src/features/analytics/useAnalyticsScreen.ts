@@ -9,6 +9,7 @@ import {
   type AnalyticsSnapshot,
   type SettingsSnapshot,
 } from "@/db";
+import type { RadarMetric } from "@/components/charts/RadarChart";
 
 const defaultAnalytics: AnalyticsSnapshot = {
   monthlyNetBalance: 0,
@@ -22,6 +23,12 @@ const defaultSettings: SettingsSnapshot = {
   retentionMonths: 3,
   dailyReminderEnabled: true,
   dailyReminderTime: "20:00",
+  appLockEnabled: false,
+  pdfReportLastExportAt: null,
+  driveBackupEnabled: false,
+  driveBackupFrequencyDays: 15,
+  driveBackupLastRunAt: null,
+  driveConnectedEmail: null,
 };
 
 export function useAnalyticsScreen() {
@@ -52,6 +59,52 @@ export function useAnalyticsScreen() {
   );
 
   const topCategory = useMemo(() => analytics.breakdown[0] ?? null, [analytics.breakdown]);
+  const insights = useMemo(() => {
+    const earned = analytics.monthlyEarned;
+    const spent = analytics.monthlySpent;
+    const totalFlow = earned + spent;
+    const topShare = topCategory?.sharePercent ?? 0;
+    const categoryCount = analytics.breakdown.length;
+    const dominantValue = Math.max(earned, spent, 1);
+    const incomeCoverage = spent <= 0 ? (earned > 0 ? 10 : 0) : Math.min(10, (earned / spent) * 10);
+    const netHealth =
+      earned <= 0 && spent <= 0
+        ? 0
+        : Math.max(0, Math.min(10, ((earned - spent) / dominantValue) * 5 + 5));
+    const diversity = Math.min(10, (categoryCount / 5) * 10);
+    const concentrationSafety = Math.max(0, 10 - topShare / 10);
+    const spendingIntensity =
+      totalFlow <= 0 ? 0 : Math.max(0, Math.min(10, 10 - (spent / totalFlow) * 10));
+
+    const radarMetrics: RadarMetric[] = [
+      { label: "Coverage", value: incomeCoverage },
+      { label: "Net", value: netHealth },
+      { label: "Diversity", value: diversity },
+      { label: "Spread", value: concentrationSafety },
+      { label: "Control", value: spendingIntensity },
+    ];
+
+    const expenseToIncomeRatio =
+      earned > 0 ? spent / earned : spent > 0 ? Number.POSITIVE_INFINITY : 0;
+
+    const incomeSharePercent = totalFlow > 0 ? (earned / totalFlow) * 100 : 0;
+    const expenseSharePercent = totalFlow > 0 ? (spent / totalFlow) * 100 : 0;
+    const netDirection = analytics.monthlyNetBalance >= 0 ? "surplus" : "deficit";
+
+    return {
+      expenseSharePercent,
+      expenseToIncomeRatio,
+      incomeSharePercent,
+      netDirection,
+      radarMetrics,
+    };
+  }, [
+    analytics.breakdown.length,
+    analytics.monthlyEarned,
+    analytics.monthlyNetBalance,
+    analytics.monthlySpent,
+    topCategory?.sharePercent,
+  ]);
 
   async function handleExport() {
     try {
@@ -69,6 +122,7 @@ export function useAnalyticsScreen() {
     analytics,
     errorMessage,
     isExporting,
+    insights,
     settings,
     topCategory,
     handleExport,

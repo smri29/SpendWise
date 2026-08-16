@@ -26,6 +26,12 @@ export type SettingsSnapshot = {
   retentionMonths: number;
   dailyReminderEnabled: boolean;
   dailyReminderTime: string;
+  appLockEnabled: boolean;
+  pdfReportLastExportAt: number | null;
+  driveBackupEnabled: boolean;
+  driveBackupFrequencyDays: number;
+  driveBackupLastRunAt: number | null;
+  driveConnectedEmail: string | null;
 };
 
 export type DashboardSnapshot = {

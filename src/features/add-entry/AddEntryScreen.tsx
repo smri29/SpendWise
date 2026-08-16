@@ -14,59 +14,90 @@ import { clampNoteLength, formatMoney, parseAmountInput } from "@/utils/format";
 
 export default function AddEntryScreen() {
   const form = useAddEntryForm();
+  const parsedAmount = parseAmountInput(form.amountInput);
 
   return (
     <ScreenFrame contentContainerStyle={styles.content}>
       <AddEntryHeader />
 
-      <SegmentControl
-        options={addEntryTypeOptions}
-        value={form.entryType}
-        onChange={form.setEntryType}
-      />
-
-      <TextInput
-        value={form.amountInput}
-        onChangeText={form.handleAmountChange}
-        placeholder="Amount"
-        style={styles.fakeInput}
-        placeholderTextColor={SpendWiseTheme.colors.textMuted}
-        keyboardType="decimal-pad"
-      />
-
-      <View style={styles.previewCard}>
-        <Text style={styles.previewLabel}>Selected category</Text>
-        <Text style={styles.previewValue}>
-          {form.selectedCategory?.name ?? "Choose a category"}
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Transaction Type</Text>
+        <Text style={styles.sectionCaption}>
+          Start by choosing whether you are logging an expense or income.
         </Text>
-        <Text style={styles.previewMeta}>
-          {form.amountInput.trim()
-            ? `Preview: ${formatMoney(parseAmountInput(form.amountInput) ?? 0, "$")}`
-            : "Enter an amount and choose a category"}
-        </Text>
+        <SegmentControl
+          options={addEntryTypeOptions}
+          value={form.entryType}
+          onChange={form.setEntryType}
+        />
       </View>
 
-      <CategoryPicker
-        categories={form.categories}
-        selectedCategoryId={form.selectedCategoryId}
-        onSelect={form.setSelectedCategoryId}
-      />
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Amount</Text>
+        <Text style={styles.sectionCaption}>
+          Enter the exact amount. Only valid money values are accepted.
+        </Text>
+        <TextInput
+          value={form.amountInput}
+          onChangeText={form.handleAmountChange}
+          placeholder="0.00"
+          style={[styles.fakeInput, styles.amountInput]}
+          placeholderTextColor={SpendWiseTheme.colors.textMuted}
+          keyboardType="decimal-pad"
+        />
+      </View>
 
-      <TextInput
-        value={form.note}
-        onChangeText={(value) => form.setNote(clampNoteLength(value))}
-        placeholder="Description eg. Fare, bill, restaurant"
-        style={[styles.fakeInput, styles.multilineInput]}
-        placeholderTextColor={SpendWiseTheme.colors.textMuted}
-        multiline
-        maxLength={100}
-      />
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Category</Text>
+        <Text style={styles.sectionCaption}>
+          Pick one category so the entry is easy to filter and analyze later.
+        </Text>
+        <View style={styles.previewCard}>
+          <Text style={styles.previewLabel}>Selected category</Text>
+          <Text style={styles.previewValue}>
+            {form.selectedCategory?.name ?? "Choose a category"}
+          </Text>
+          <Text style={styles.previewMeta}>
+            {form.amountInput.trim()
+              ? `Preview: ${formatMoney(parsedAmount ?? 0, form.currencySymbol)}`
+              : "Enter an amount and choose a category"}
+          </Text>
+        </View>
 
-      <DateTimeSelectors
-        selectedDate={form.selectedDate}
-        onPressDate={() => form.setShowDatePicker(true)}
-        onPressTime={() => form.setShowTimePicker(true)}
-      />
+        <CategoryPicker
+          categories={form.categories}
+          selectedCategoryId={form.selectedCategoryId}
+          onSelect={form.setSelectedCategoryId}
+        />
+      </View>
+
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Note</Text>
+        <Text style={styles.sectionCaption}>
+          Add a short description to remember what this entry was for.
+        </Text>
+        <TextInput
+          value={form.note}
+          onChangeText={(value) => form.setNote(clampNoteLength(value))}
+          placeholder="Description eg. Fare, bill, restaurant"
+          style={[styles.fakeInput, styles.multilineInput]}
+          placeholderTextColor={SpendWiseTheme.colors.textMuted}
+          multiline
+          maxLength={100}
+        />
+      </View>
+
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Date & Time</Text>
+        <Text style={styles.sectionCaption}>
+          Keep the current timestamp or adjust it to match when the transaction happened.
+        </Text>
+        <DateTimeSelectors
+          selectedDate={form.selectedDate}
+          onPressDate={() => form.setShowDatePicker(true)}
+          onPressTime={() => form.setShowTimePicker(true)}
+        />
+      </View>
 
       {form.errorMessage ? <Text style={styles.inlineError}>{form.errorMessage}</Text> : null}
 

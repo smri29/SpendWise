@@ -181,6 +181,26 @@ export async function importBackupJsonAsync() {
       await txn.runAsync("INSERT INTO settings (key, value) VALUES ('daily_reminder_time', ?);", [
         restoredSettings.dailyReminderTime,
       ]);
+      await txn.runAsync("INSERT INTO settings (key, value) VALUES ('app_lock_enabled', ?);", [
+        String(restoredSettings.appLockEnabled),
+      ]);
+      await txn.runAsync(
+        "INSERT INTO settings (key, value) VALUES ('pdf_report_last_export_at', ?);",
+        [restoredSettings.pdfReportLastExportAt ? String(restoredSettings.pdfReportLastExportAt) : ""],
+      );
+      await txn.runAsync("INSERT INTO settings (key, value) VALUES ('drive_backup_enabled', ?);", [
+        String(restoredSettings.driveBackupEnabled),
+      ]);
+      await txn.runAsync(
+        "INSERT INTO settings (key, value) VALUES ('drive_backup_frequency_days', ?);",
+        [String(restoredSettings.driveBackupFrequencyDays)],
+      );
+      await txn.runAsync("INSERT INTO settings (key, value) VALUES ('drive_backup_last_run_at', ?);", [
+        restoredSettings.driveBackupLastRunAt ? String(restoredSettings.driveBackupLastRunAt) : "",
+      ]);
+      await txn.runAsync("INSERT INTO settings (key, value) VALUES ('drive_connected_email', ?);", [
+        restoredSettings.driveConnectedEmail ?? "",
+      ]);
     });
 
     await executeRollingPurge(db);

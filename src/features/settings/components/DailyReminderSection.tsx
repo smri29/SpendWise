@@ -17,6 +17,9 @@ export function DailyReminderSection({
   return (
     <View style={styles.sectionCard}>
       <Text style={styles.sectionTitle}>Daily Reminder</Text>
+      <Text style={styles.sectionCaption}>
+        One privacy-safe local notification helps you keep logging on time.
+      </Text>
       <View style={styles.toggleRow}>
         <View style={styles.toggleCopy}>
           <Text style={styles.rowLabel}>Daily log reminder</Text>
@@ -34,6 +37,7 @@ export function DailyReminderSection({
       <Pressable style={styles.reminderTimeCard} onPress={onPressTime}>
         <Text style={styles.rowLabel}>Reminder Time</Text>
         <Text style={styles.timeValue}>{settings.dailyReminderTime}</Text>
+        <Text style={styles.metaText}>Uses only local device notifications.</Text>
       </Pressable>
     </View>
   );
