@@ -29,10 +29,6 @@ const defaultSettings: SettingsSnapshot = {
   dailyReminderTime: "20:00",
   appLockEnabled: false,
   pdfReportLastExportAt: null,
-  driveBackupEnabled: false,
-  driveBackupFrequencyDays: 15,
-  driveBackupLastRunAt: null,
-  driveConnectedEmail: null,
 };
 
 const defaultStorage: StorageSnapshot = {
@@ -175,13 +171,6 @@ export function useSettingsScreen() {
     }
   }
 
-  async function handleDriveConnect() {
-    Alert.alert(
-      "Google Drive setup required",
-      "Drive backup needs Google OAuth client configuration and a development build or release build. The current codebase can now represent this flow, but final connection details must be supplied from Google Cloud Console.",
-    );
-  }
-
   const reminderDate = useMemo(
     () => parseReminderTime(settings.dailyReminderTime),
     [settings.dailyReminderTime],
@@ -204,25 +193,13 @@ export function useSettingsScreen() {
     ? settings.dailyReminderTime
     : "Off";
 
-  const driveBackupStatusLabel = settings.driveConnectedEmail
-    ? settings.driveBackupEnabled
-      ? "Connected"
-      : "Connected, off"
-    : "Setup required";
-
   const pdfLastExportLabel = settings.pdfReportLastExportAt
     ? formatShortDateTime(settings.pdfReportLastExportAt)
-    : "Never";
-
-  const driveLastBackupLabel = settings.driveBackupLastRunAt
-    ? formatShortDateTime(settings.driveBackupLastRunAt)
     : "Never";
 
   return {
     appLockSupported,
     appLockStatusLabel,
-    driveBackupStatusLabel,
-    driveLastBackupLabel,
     errorMessage,
     isImporting,
     pdfLastExportLabel,
@@ -236,7 +213,6 @@ export function useSettingsScreen() {
     handleAppLockToggle,
     handleBackupExport,
     handleBackupImport,
-    handleDriveConnect,
     handlePdfExport,
     handleTimeChange,
     patchSettings,

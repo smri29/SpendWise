@@ -8,20 +8,20 @@ type SettingsOverviewSectionProps = {
   appLockLabel: string;
   reminderLabel: string;
   retentionLabel: string;
-  driveBackupLabel: string;
+  reportsLabel: string;
 };
 
 export function SettingsOverviewSection({
   appLockLabel,
   reminderLabel,
   retentionLabel,
-  driveBackupLabel,
+  reportsLabel,
 }: SettingsOverviewSectionProps) {
   const items = [
     { icon: "shield-checkmark-outline" as const, title: "App Lock", value: appLockLabel },
     { icon: "notifications-outline" as const, title: "Reminder", value: reminderLabel },
     { icon: "archive-outline" as const, title: "Retention", value: retentionLabel },
-    { icon: "cloud-outline" as const, title: "Cloud Backup", value: driveBackupLabel },
+    { icon: "document-text-outline" as const, title: "Reports", value: reportsLabel },
   ];
 
   return (

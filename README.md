@@ -27,12 +27,12 @@ The user owns the data lifecycle, including reminder behavior, backup export, re
 
 ## Logo and Brand Assets
 
-- App icon source: `assets/images/icon.png`
+- App icon source: `assets/images/spendwise-icon.png`
 - Android adaptive icon sources:
-  - `assets/images/android-icon-foreground.png`
+  - `assets/images/spendwise-adaptive-foreground.png`
   - `assets/images/android-icon-background.png`
-  - `assets/images/android-icon-monochrome.png`
-- Splash image source: `assets/images/splash-icon.png`
+  - `assets/images/spendwise-adaptive-monochrome.png`
+- Splash image source: `assets/images/spendwise-splash-brand.png`
 
 The current brand direction combines a bright budgeting-friendly yellow backdrop with calm navy typography and soft white content cards.
 
@@ -40,14 +40,14 @@ The current brand direction combines a bright budgeting-friendly yellow backdrop
 
 ### Runtime and framework
 
-- Expo `~56.0.12`
-- React Native `0.85.3`
+- Expo `~57.0.13`
+- React Native `0.86.2`
 - React `19.2.3`
 - TypeScript `~6.0.3`
 
 ### Navigation
 
-- Expo Router `~56.2.17`
+- Expo Router `~57.0.13`
 - Drawer navigation via `expo-router/drawer`
 
 ### Local platform capabilities
@@ -55,6 +55,7 @@ The current brand direction combines a bright budgeting-friendly yellow backdrop
 - SQLite via `expo-sqlite`
 - Local notifications via `expo-notifications`
 - File export and backup via `expo-file-system`
+- PDF generation via `expo-print`
 - Native sharing via `expo-sharing`
 - Haptics via `expo-haptics`
 
@@ -90,7 +91,7 @@ The current brand direction combines a bright budgeting-friendly yellow backdrop
 - Add Entry: category-forward form with preview and explicit timestamp control
 - View Logs: visible totals, quick filters, destructive delete confirmation
 - Analytics: top summary cards before visual breakdown
-- Settings: grouped by preference, storage, reminder, and privacy domains
+- Settings: grouped by preference, security, storage, reminder, reports, and privacy domains
 - Feedback: trust messaging shown before email-based feedback submission
 
 ## Architecture
@@ -202,6 +203,8 @@ Transactions store Unix epoch milliseconds and are localized only at render time
 - `retention_months = 3`
 - `daily_reminder_enabled = true`
 - `daily_reminder_time = 20:00`
+- `app_lock_enabled = false`
+- `pdf_report_last_export_at =`
 
 ## Retention and Privacy Behavior
 
@@ -265,15 +268,18 @@ Transactions store Unix epoch milliseconds and are localized only at render time
 - Earned this month
 - Top expense category
 - Donut breakdown chart
+- Radar trend chart
 - CSV export
 
 ### Settings
 
 - Currency selector
+- App lock toggle
 - Retention selector
 - Local storage estimate
 - JSON backup export
 - JSON restore
+- PDF report export
 - Clear-all-data flow
 - Reminder toggle and time
 - Privacy summary
@@ -325,7 +331,7 @@ npm run android
 
 If Android SDK or `adb` is not configured locally, use:
 
-- Expo Go with a compatible SDK 56 client
+- Expo Go with a compatible SDK 57 client
 - or a development build / APK on a real device
 
 ## Validation Commands
@@ -372,4 +378,4 @@ User action
 
 ## Project Status
 
-The app is structured as a production-oriented offline personal finance tool with modularized screens, modularized SQLite access, and supporting markdown documentation for maintenance and extension.
+The app is structured as a production-oriented offline personal finance tool with modularized screens, modularized SQLite access, local app protection, PDF export support, and supporting markdown documentation for maintenance and extension.

@@ -35,7 +35,7 @@ export default function SettingsScreen() {
         appLockLabel={settingsScreen.appLockStatusLabel}
         reminderLabel={settingsScreen.reminderStatusLabel}
         retentionLabel={settingsScreen.retentionSummary}
-        driveBackupLabel={settingsScreen.driveBackupStatusLabel}
+        reportsLabel={settingsScreen.pdfLastExportLabel}
       />
 
       <GeneralPreferencesSection
@@ -69,20 +69,8 @@ export default function SettingsScreen() {
       />
 
       <BackupReportsSection
-        driveBackupEnabled={settingsScreen.settings.driveBackupEnabled}
-        driveBackupFrequencyDays={settingsScreen.settings.driveBackupFrequencyDays}
-        driveConnectedEmail={settingsScreen.settings.driveConnectedEmail}
-        driveConfigured={false}
-        driveLastBackupLabel={settingsScreen.driveLastBackupLabel}
         pdfLastExportLabel={settingsScreen.pdfLastExportLabel}
-        onConnectDrive={() => void settingsScreen.handleDriveConnect()}
         onExportPdf={() => void settingsScreen.handlePdfExport()}
-        onToggleDriveBackup={(value) =>
-          void settingsScreen.patchSettings({ driveBackupEnabled: value })
-        }
-        onFrequencyChange={(value) =>
-          void settingsScreen.patchSettings({ driveBackupFrequencyDays: value })
-        }
       />
 
       <PrivacyAboutSection />

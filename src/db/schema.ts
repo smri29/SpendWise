@@ -22,10 +22,6 @@ const defaultSettings = [
   ["daily_reminder_time", "20:00"],
   ["app_lock_enabled", "false"],
   ["pdf_report_last_export_at", ""],
-  ["drive_backup_enabled", "false"],
-  ["drive_backup_frequency_days", "15"],
-  ["drive_backup_last_run_at", ""],
-  ["drive_connected_email", ""],
 ] as const;
 
 export async function createSchemaAsync(db: SQLiteDatabase) {
