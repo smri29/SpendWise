@@ -20,6 +20,15 @@ export function GeneralPreferencesSection({
       <Text style={styles.sectionCaption}>
         Set how money appears across home, logs, analytics, and exports.
       </Text>
+      <View style={styles.infoSurface}>
+        <View style={styles.infoSurfaceRow}>
+          <Text style={styles.infoSurfaceLabel}>Current currency</Text>
+          <Text style={styles.infoSurfaceValue}>{settings.currencySymbol}</Text>
+        </View>
+        <Text style={styles.metaText}>
+          This changes labels and export formatting only. It does not convert amounts.
+        </Text>
+      </View>
       <Text style={styles.rowLabel}>Currency</Text>
       <SegmentControl
         options={currencyOptions}

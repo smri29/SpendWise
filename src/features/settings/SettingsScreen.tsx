@@ -8,6 +8,7 @@ import { DailyReminderSection } from "@/features/settings/components/DailyRemind
 import { GeneralPreferencesSection } from "@/features/settings/components/GeneralPreferencesSection";
 import { PrivacyAboutSection } from "@/features/settings/components/PrivacyAboutSection";
 import { SecuritySection } from "@/features/settings/components/SecuritySection";
+import { SettingsOverviewSection } from "@/features/settings/components/SettingsOverviewSection";
 import { useSettingsScreen } from "@/features/settings/hooks/useSettingsScreen";
 import { settingsStyles as styles } from "@/features/settings/styles";
 
@@ -21,9 +22,21 @@ export default function SettingsScreen() {
       <View style={styles.heroCard}>
         <Text style={styles.heroTitle}>Protection & Backup</Text>
         <Text style={styles.heroText}>
-          Control privacy, storage, reminders, reports, and device protection from one place.
+          Control privacy, storage, reminders, exports, and device protection from one clear
+          dashboard.
         </Text>
       </View>
+
+      {settingsScreen.errorMessage ? (
+        <Text style={styles.inlineError}>{settingsScreen.errorMessage}</Text>
+      ) : null}
+
+      <SettingsOverviewSection
+        appLockLabel={settingsScreen.appLockStatusLabel}
+        reminderLabel={settingsScreen.reminderStatusLabel}
+        retentionLabel={settingsScreen.retentionSummary}
+        driveBackupLabel={settingsScreen.driveBackupStatusLabel}
+      />
 
       <GeneralPreferencesSection
         settings={settingsScreen.settings}
@@ -34,6 +47,14 @@ export default function SettingsScreen() {
         appLockEnabled={settingsScreen.settings.appLockEnabled}
         appLockSupported={settingsScreen.appLockSupported}
         onChangeAppLock={(value) => void settingsScreen.handleAppLockToggle(value)}
+      />
+
+      <DailyReminderSection
+        settings={settingsScreen.settings}
+        onChangeEnabled={(value) =>
+          void settingsScreen.patchSettings({ dailyReminderEnabled: value })
+        }
+        onPressTime={() => settingsScreen.setShowTimePicker(true)}
       />
 
       <DataRetentionSection
@@ -64,19 +85,7 @@ export default function SettingsScreen() {
         }
       />
 
-      <DailyReminderSection
-        settings={settingsScreen.settings}
-        onChangeEnabled={(value) =>
-          void settingsScreen.patchSettings({ dailyReminderEnabled: value })
-        }
-        onPressTime={() => settingsScreen.setShowTimePicker(true)}
-      />
-
       <PrivacyAboutSection />
-
-      {settingsScreen.errorMessage ? (
-        <Text style={styles.inlineError}>{settingsScreen.errorMessage}</Text>
-      ) : null}
 
       {settingsScreen.showTimePicker ? (
         <DateTimePicker

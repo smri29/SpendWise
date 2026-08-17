@@ -33,6 +33,16 @@ export function DataRetentionSection({
       <Text style={styles.sectionCaption}>
         Decide how long local history stays on this device and manage manual backup files.
       </Text>
+      <View style={styles.infoSurface}>
+        <View style={styles.infoSurfaceRow}>
+          <Text style={styles.infoSurfaceLabel}>Local database</Text>
+          <Text style={styles.infoSurfaceValue}>{formatBytes(storage.estimatedBytes)}</Text>
+        </View>
+        <Text style={styles.metaText}>
+          {storage.transactionsCount} transactions, {storage.categoriesCount} categories,{" "}
+          {storage.settingsCount} settings entries stored offline on this device.
+        </Text>
+      </View>
       <Text style={styles.rowLabel}>Auto-Delete History</Text>
       <SegmentControl
         options={retentionOptions}
@@ -41,8 +51,7 @@ export function DataRetentionSection({
       />
       <Text style={styles.storageText}>{retentionSummary}</Text>
       <Text style={styles.storageText}>
-        Local storage used: {storage.transactionsCount} transactions | {storage.categoriesCount}{" "}
-        categories | {formatBytes(storage.estimatedBytes)} estimated
+        Export a JSON backup before clearing data or switching to a new device.
       </Text>
       <Pressable style={styles.secondaryButton} onPress={onBackupExport}>
         <Text style={styles.secondaryButtonText}>Backup Data (.json)</Text>
@@ -55,6 +64,10 @@ export function DataRetentionSection({
       <Pressable style={styles.dangerButton} onPress={onClearAllData}>
         <Text style={styles.dangerButtonText}>Clear All Data</Text>
       </Pressable>
+      <Text style={styles.metaText}>
+        Clear All Data deletes transactions, categories, reminders, and saved preferences from this
+        phone.
+      </Text>
     </View>
   );
 }

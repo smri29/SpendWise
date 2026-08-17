@@ -194,6 +194,22 @@ export function useSettingsScreen() {
         }`
       : "Auto-delete disabled";
 
+  const appLockStatusLabel = appLockSupported
+    ? settings.appLockEnabled
+      ? "Enabled"
+      : "Off"
+    : "Unavailable";
+
+  const reminderStatusLabel = settings.dailyReminderEnabled
+    ? settings.dailyReminderTime
+    : "Off";
+
+  const driveBackupStatusLabel = settings.driveConnectedEmail
+    ? settings.driveBackupEnabled
+      ? "Connected"
+      : "Connected, off"
+    : "Setup required";
+
   const pdfLastExportLabel = settings.pdfReportLastExportAt
     ? formatShortDateTime(settings.pdfReportLastExportAt)
     : "Never";
@@ -204,11 +220,14 @@ export function useSettingsScreen() {
 
   return {
     appLockSupported,
+    appLockStatusLabel,
+    driveBackupStatusLabel,
     driveLastBackupLabel,
     errorMessage,
     isImporting,
     pdfLastExportLabel,
     reminderDate,
+    reminderStatusLabel,
     retentionSummary,
     settings,
     showTimePicker,

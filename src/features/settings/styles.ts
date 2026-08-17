@@ -15,9 +15,11 @@ export const settingsStyles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.64)",
+    backgroundColor: "rgba(255,255,255,0.70)",
     padding: 20,
     gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.46)",
   },
   heroTitle: {
     color: SpendWiseTheme.colors.text,
@@ -31,9 +33,11 @@ export const settingsStyles = StyleSheet.create({
   },
   sectionCard: {
     borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.64)",
+    backgroundColor: "rgba(255,255,255,0.68)",
     padding: 20,
     gap: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.38)",
   },
   sectionTitle: {
     fontSize: 24,
@@ -102,6 +106,30 @@ export const settingsStyles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 16,
   },
+  infoSurface: {
+    borderRadius: 20,
+    backgroundColor: "rgba(255,253,231,0.84)",
+    padding: 16,
+    gap: 8,
+  },
+  infoSurfaceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  infoSurfaceLabel: {
+    flex: 1,
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  infoSurfaceValue: {
+    color: SpendWiseTheme.colors.text,
+    fontSize: 14,
+    fontWeight: "800",
+    textAlign: "right",
+  },
   toggleCopy: {
     flex: 1,
     gap: 4,
@@ -111,6 +139,38 @@ export const settingsStyles = StyleSheet.create({
     backgroundColor: "rgba(255,253,231,0.88)",
     padding: 16,
     gap: 12,
+  },
+  overviewGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  overviewCard: {
+    width: "48%",
+    minHeight: 124,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,253,231,0.88)",
+    padding: 14,
+    gap: 10,
+  },
+  overviewIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.72)",
+  },
+  overviewTitle: {
+    color: SpendWiseTheme.colors.textMuted,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  overviewValue: {
+    color: SpendWiseTheme.colors.text,
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
   },
   reminderTimeCard: {
     borderRadius: 18,

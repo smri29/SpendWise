@@ -20,6 +20,18 @@ export function DailyReminderSection({
       <Text style={styles.sectionCaption}>
         One privacy-safe local notification helps you keep logging on time.
       </Text>
+      <View style={styles.infoSurface}>
+        <View style={styles.infoSurfaceRow}>
+          <Text style={styles.infoSurfaceLabel}>Current reminder</Text>
+          <Text style={styles.infoSurfaceValue}>
+            {settings.dailyReminderEnabled ? settings.dailyReminderTime : "Off"}
+          </Text>
+        </View>
+        <Text style={styles.metaText}>
+          Notifications stay local to this phone. SpendWise does not send reminder data to a
+          server.
+        </Text>
+      </View>
       <View style={styles.toggleRow}>
         <View style={styles.toggleCopy}>
           <Text style={styles.rowLabel}>Daily log reminder</Text>

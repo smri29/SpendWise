@@ -40,10 +40,20 @@ export function BackupReportsSection({
         Keep a portable PDF summary and prepare optional Drive backup for device loss or switching.
       </Text>
 
+      <View style={styles.infoSurface}>
+        <View style={styles.infoSurfaceRow}>
+          <Text style={styles.infoSurfaceLabel}>Last PDF report</Text>
+          <Text style={styles.infoSurfaceValue}>{pdfLastExportLabel}</Text>
+        </View>
+        <Text style={styles.metaText}>
+          The PDF includes logs, totals, and analytics so your records stay readable outside the
+          app.
+        </Text>
+      </View>
+
       <Pressable style={styles.secondaryButton} onPress={onExportPdf}>
         <Text style={styles.secondaryButtonText}>Export PDF Report</Text>
       </Pressable>
-      <Text style={styles.metaText}>Last PDF export: {pdfLastExportLabel}</Text>
 
       <View style={styles.cloudCard}>
         <View style={styles.stripRow}>
@@ -71,7 +81,11 @@ export function BackupReportsSection({
 
         <Pressable style={styles.secondaryButton} onPress={onConnectDrive}>
           <Text style={styles.secondaryButtonText}>
-            {driveConnectedEmail ? "Reconnect Google Drive" : "Connect Google Drive"}
+            {driveConfigured
+              ? driveConnectedEmail
+                ? "Reconnect Google Drive"
+                : "Connect Google Drive"
+              : "Drive Setup Required"}
           </Text>
         </Pressable>
 

@@ -20,6 +20,20 @@ export function SecuritySection({
         Lock SpendWise after leaving the app. Re-entry requires the device lock system.
       </Text>
 
+      <View style={styles.infoSurface}>
+        <View style={styles.infoSurfaceRow}>
+          <Text style={styles.infoSurfaceLabel}>Unlock method</Text>
+          <Text style={styles.infoSurfaceValue}>
+            {appLockSupported ? "Biometric / PIN / Pattern" : "Unavailable"}
+          </Text>
+        </View>
+        <Text style={styles.metaText}>
+          {appLockSupported
+            ? "SpendWise uses your phone's own secure unlock prompt."
+            : "Set up device authentication first, then return here to enable app lock."}
+        </Text>
+      </View>
+
       <View style={styles.toggleRow}>
         <View style={styles.toggleCopy}>
           <Text style={styles.rowLabel}>Lock SpendWise</Text>
