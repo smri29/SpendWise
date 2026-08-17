@@ -24,6 +24,11 @@ export default function DrawerLayout() {
         drawerActiveTintColor: SpendWiseTheme.colors.text,
         drawerInactiveTintColor: SpendWiseTheme.colors.textMuted,
         drawerType: "front",
+        drawerStyle: {
+          width: 336,
+          backgroundColor: SpendWiseTheme.colors.backgroundSoft,
+        },
+        overlayColor: "rgba(41, 42, 20, 0.32)",
       }}
     >
       <Drawer.Screen
